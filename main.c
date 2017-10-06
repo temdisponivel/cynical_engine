@@ -35,18 +35,10 @@ static void error_callback(int error, const char* description) {
     fprintf(stderr, "Error: %s\n", description);
 }
 
-typedef struct {
-    matrix4x4 trans;
-    matrix4x4 rotation;
-    matrix4x4 scale;
-
-    matrix4x4 transform_matrix;
-} transform;
-
-transform triangle_trans;
-
 vector3 center, eye, up;
 matrix4x4 projection, view, mvp;
+
+transform* triangle;
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     int shiftted = (mods & GLFW_MOD_SHIFT) == GLFW_MOD_SHIFT;
@@ -57,52 +49,35 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
         }
 
         if (key == GLFW_KEY_X) {
-
-            matrix4x4 rot;
-            set_matrix4x4_identity(&rot);
-            matrix4x4_rotate_x(&rot, &rot, to_rad(shiftted ? -30 : 30));
-            matrix4x4_mul(&triangle_trans.rotation, &triangle_trans.rotation, &rot);
-
+            triangle->rotation = quaternion_rotate(triangle->rotation, shiftted ? -10 : 10, vector3_right());
         }
 
         if (key == GLFW_KEY_Y) {
-
-            matrix4x4 rot;
-            set_matrix4x4_identity(&rot);
-            matrix4x4_rotate_y(&rot, &rot, to_rad(shiftted ? -30 : 30));
-            matrix4x4_mul(&triangle_trans.rotation, &triangle_trans.rotation, &rot);
+            triangle->rotation = quaternion_rotate(triangle->rotation, shiftted ? -10 : 10, vector3_up());
         }
 
         if (key == GLFW_KEY_Z) {
-
-            matrix4x4 rot;
-            set_matrix4x4_identity(&rot);
-            matrix4x4_rotate_z(&rot, &rot, to_rad(shiftted ? -30 : 30));
-            matrix4x4_mul(&triangle_trans.rotation, &triangle_trans.rotation, &rot);
+            triangle->rotation = quaternion_rotate(triangle->rotation, shiftted ? -10 : 10, vector3_forward());
         }
 
         if (key == GLFW_KEY_S) {
-            matrix4x4 scale;
-            set_matrix4x4_identity(&scale);
-            float scaleFactor = shiftted ? 0.5f : 2.0f;
-            matrix4x4_scale_anisio(&scale, &scale, make_vector3(scaleFactor, scaleFactor, scaleFactor));
-            matrix4x4_mul(&triangle_trans.scale, &triangle_trans.scale, &scale);
+            triangle->scale = vector3_scale(triangle->scale, shiftted ? .5f : 2.0f);
         }
 
         if (key == GLFW_KEY_RIGHT) {
-            matrix4x4 translate;
-            set_matrix4x4_identity(&translate);
-
-            matrix4x4_translate_in_place(&translate, vector3_left());
-            matrix4x4_mul(&triangle_trans.trans, &triangle_trans.trans, &translate);
+            triangle->position = vector3_add(triangle->position, vector3_right());
         }
 
         if (key == GLFW_KEY_LEFT) {
-            matrix4x4 translate;
-            set_matrix4x4_identity(&translate);
+            triangle->position = vector3_add(triangle->position, vector3_left());
+        }
 
-            matrix4x4_translate(&translate, vector3_right());
-            matrix4x4_mul(&triangle_trans.trans, &triangle_trans.trans, &translate);
+        if (key == GLFW_KEY_UP) {
+            triangle->position = vector3_add(triangle->position, vector3_up());
+        }
+
+        if (key == GLFW_KEY_DOWN) {
+            triangle->position = vector3_add(triangle->position, vector3_down());
         }
     }
 }
@@ -177,16 +152,12 @@ int main(void) {
     ratio = width / (float) height;
     glViewport(0, 0, width, height);
 
-    set_matrix4x4_identity(&triangle_trans.rotation);
-    set_matrix4x4_identity(&triangle_trans.scale);
-    set_matrix4x4_identity(&triangle_trans.trans);
+    triangle = make_transform();
 
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT);
 
-        set_matrix4x4_identity(&triangle_trans.transform_matrix);
-        matrix4x4_mul(&triangle_trans.transform_matrix, &triangle_trans.scale, &triangle_trans.rotation);
-        matrix4x4_mul(&triangle_trans.transform_matrix, &triangle_trans.transform_matrix, &triangle_trans.trans);
+        transform_update_matrix(triangle);
 
         set_matrix4x4_identity(&projection);
         matrix4x4_perspective(&projection, 90, ratio, 0, -1000);
@@ -197,7 +168,7 @@ int main(void) {
         //matrix4x4_ortho(projection, -ratio, ratio, -1.f, 1.f, 1.f, -1.f);
         set_matrix4x4_identity(&mvp);
         matrix4x4_mul(&mvp, &projection, &view);
-        matrix4x4_mul(&mvp, &mvp, &triangle_trans.transform_matrix);
+        matrix4x4_mul(&mvp, &mvp, triangle->matrix);
 
         float mvp_data[4][4];
         get_gl_matrix4x4(mvp_data, &mvp);

@@ -55,6 +55,14 @@ typedef struct quaternion_s {
     float w;
 } quaternion;
 
+typedef struct transform_s {
+    vector3 position;
+    vector3 scale;
+    quaternion rotation;
+
+    matrix4x4* matrix;
+} transform;
+
 // ################ GENERAL #################################
 
 const float RAD_TO_DEGREE = 57.29578;
@@ -845,7 +853,8 @@ void matrix4x4_from_vector3_mul_outer(matrix4x4* result, vector3 left, vector3 r
     result->ww = 0;
 }
 
-void matrix4x4_rotate_x(matrix4x4* result, matrix4x4* data, float radians) {
+void matrix4x4_rotate_x(matrix4x4* result, matrix4x4* data, float degrees) {
+    float radians = to_rad(degrees);
     float s = sinf(radians);
     float c = cosf(radians);
 
@@ -862,7 +871,8 @@ void matrix4x4_rotate_x(matrix4x4* result, matrix4x4* data, float radians) {
     matrix4x4_mul(result, data, &multiplier);
 }
 
-void matrix4x4_rotate_y(matrix4x4* result, matrix4x4* data, float radians) {
+void matrix4x4_rotate_y(matrix4x4* result, matrix4x4* data, float degrees) {
+    float radians = to_rad(degrees);
     float s = sinf(radians);
     float c = cosf(radians);
 
@@ -879,7 +889,8 @@ void matrix4x4_rotate_y(matrix4x4* result, matrix4x4* data, float radians) {
     matrix4x4_mul(result, data, &multiplier);
 }
 
-void matrix4x4_rotate_z(matrix4x4* result, matrix4x4* data, float radians) {
+void matrix4x4_rotate_z(matrix4x4* result, matrix4x4* data, float degrees) {
+    float radians = to_rad(degrees);
     float s = sinf(radians);
     float c = cosf(radians);
 
@@ -1100,10 +1111,18 @@ quaternion quaternion_conj(quaternion quat) {
     return make_quaternion(x, y, z, w);
 }
 
-quaternion quaternion_rotate(float radians, vector3 axis) {
-    vector3 v = vector3_scale(axis, sinf(radians / 2));
-    float w = cosf(radians / 2);
-    return make_quaternion(v.x, v.y, v.z, w);
+quaternion quaternion_rotate(quaternion quat, float degrees, vector3 axis) {
+    float radians = to_rad(degrees);
+    vector3 v = vector3_scale(axis, sinf(radians / 2.0f));
+    float w = cosf(radians / 2.0f);
+
+    quaternion rot;
+    rot.x = v.x;
+    rot.y = v.y;
+    rot.z = v.z;
+    rot.w = w;
+
+    return quaternion_mul(quat, rot);
 }
 
 vector3 quaternion_mul_vec3(quaternion quat, vector3 vector) {
@@ -1250,6 +1269,47 @@ vector3 quaternion_to_euler(quaternion quat) {
     float z = atan2(siny, cosy);
 
     return make_vector3(x, y, z);
+}
+
+quaternion quaternion_normalize(quaternion quat) {
+    vector4 vec = make_vector4(quat.x, quat.y, quat.z, quat.w);
+    vec = vector4_norm(vec);
+    return make_quaternion(vec.x, vec.y, vec.z, vec.w);
+}
+
+// ########################## TRANSFORM ###############################
+
+transform* make_transform() {
+    transform* result = malloc(sizeof(transform));
+
+    result->matrix = make_matrix4x4();
+    result->position = vector3_zero();
+    result->scale = vector3_one();
+    result->rotation = quaternion_identity();
+
+    return result;
+}
+
+void free_transform(transform* transform) {
+    free_matrix4x4(transform->matrix);
+    free(transform);
+}
+
+void transform_update_matrix(transform* transform) {
+    matrix4x4 scale_matrix;
+    set_matrix4x4_identity(&scale_matrix);
+    matrix4x4_scale_anisio(&scale_matrix, &scale_matrix, transform->scale);
+
+    matrix4x4 rotation_matrix;
+    set_matrix4x4_data_from_quaternion(&rotation_matrix, transform->rotation);
+
+    matrix4x4 translation_matrix;
+    set_matrix4x4_identity(&translation_matrix);
+    matrix4x4_translate(&translation_matrix, transform->position);
+
+    set_matrix4x4_identity(transform->matrix);
+    matrix4x4_mul(transform->matrix, &scale_matrix, &rotation_matrix);
+    matrix4x4_mul(transform->matrix, transform->matrix, &translation_matrix);
 }
 
 #endif //CYNICAL_ENGINE_CYNICAL_MATH_H
