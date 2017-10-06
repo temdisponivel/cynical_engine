@@ -1,104 +1,14 @@
 //
-// Created by Morpheus on 04-Oct-17.
+// Created by Morpheus on 06-Oct-17.
 //
 
-#ifndef CYNICAL_ENGINE_CYNICAL_MATH_H
-#define CYNICAL_ENGINE_CYNICAL_MATH_H
-
-#include <malloc.h>
-#include "linmath/linmath.h"
-
-typedef struct vector2_s {
-    float x;
-    float y;
-} vector2;
-
-typedef struct vector3_s {
-    float x;
-    float y;
-    float z;
-} vector3;
-
-typedef struct vector4_s {
-    float x;
-    float y;
-    float z;
-    float w;
-} vector4;
-
-typedef struct matrix4x4_s {
-    float xx;
-    float xy;
-    float xz;
-    float xw;
-
-    float yx;
-    float yy;
-    float yz;
-    float yw;
-
-    float zx;
-    float zy;
-    float zz;
-    float zw;
-
-    float wx;
-    float wy;
-    float wz;
-    float ww;
-} matrix4x4;
-
-typedef struct quaternion_s {
-    float x;
-    float y;
-    float z;
-    float w;
-} quaternion;
-
-typedef struct transform_s {
-    vector3 position;
-    vector3 scale;
-    quaternion rotation;
-
-    matrix4x4* matrix;
-} transform;
+#include <cynical_math.h>
+#include <math.h>
 
 // ################ GENERAL #################################
 
 const float RAD_TO_DEGREE = 57.29578;
 const float DEGREE_TO_RAD = 0.01745329;
-
-static inline float normalize(float value, float min, float max) {
-    return (value - min) / (max - min);
-}
-
-static inline float clamp(float value, float min, float max) {
-    return (value < min ? min : (value > max ? max : value));
-}
-
-static inline float lerp(float a, float b, float delta) {
-    return ((1 - delta) * a) + (delta * b);
-}
-
-static inline float move_towards(float a, float b, float maxDistance) {
-    return clamp(a + maxDistance, -b, b);
-}
-
-static inline float to_degree(float rad) {
-    return rad * RAD_TO_DEGREE;
-}
-
-static inline float to_rad(float degree) {
-    return degree * DEGREE_TO_RAD;
-}
-
-static inline float min(float a, float b) {
-    return a < b ? a : b;
-}
-
-static inline float max(float a, float b) {
-    return a > b ? a : b;
-}
 
 
 // ################ VECTOR 2 ##########################
@@ -1286,6 +1196,9 @@ transform* make_transform() {
     result->position = vector3_zero();
     result->scale = vector3_one();
     result->rotation = quaternion_identity();
+    result->forward = vector3_forward();
+    result->right = vector3_right();
+    result->up = vector3_up();
 
     return result;
 }
@@ -1311,5 +1224,3 @@ void transform_update_matrix(transform* transform) {
     matrix4x4_mul(transform->matrix, &scale_matrix, &rotation_matrix);
     matrix4x4_mul(transform->matrix, transform->matrix, &translation_matrix);
 }
-
-#endif //CYNICAL_ENGINE_CYNICAL_MATH_H
