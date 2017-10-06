@@ -490,7 +490,7 @@ vector4 vector4_reflect(vector4 a, vector4 b) {
 // #################### MATRIX 4X4 #######################
 
 
-void get_gl_matrix4x4(float** result, matrix4x4* matrix) {
+void get_gl_matrix4x4(float result[4][4], matrix4x4* matrix) {
     result[0][0] = matrix->xx;
     result[0][1] = matrix->xy;
     result[0][2] = matrix->xz;
@@ -512,7 +512,7 @@ void get_gl_matrix4x4(float** result, matrix4x4* matrix) {
     result[3][3] = matrix->ww;
 }
 
-void set_matrix4x4_from_gl(matrix4x4* result, float** data) {
+void set_matrix4x4_from_gl(matrix4x4* result, float data[4][4]) {
     result->xx = data[0][0];
     result->xy = data[0][1];
     result->xz = data[0][2];
@@ -596,23 +596,23 @@ void copy_matrix4x4_row(vector4* result, matrix4x4* data, int row) {
 
     if (row == 0) {
         result->x = data->xx;
-        result->y = data->xy;
-        result->z = data->xz;
-        result->w = data->xw;
+        result->y = data->yx;
+        result->z = data->zx;
+        result->w = data->wx;
     } else if (row == 1) {
-        result->x = data->yx;
+        result->x = data->xy;
         result->y = data->yy;
-        result->z = data->yz;
-        result->w = data->yw;
+        result->z = data->zy;
+        result->w = data->wy;
     } else if (row == 2) {
-        result->x = data->zx;
-        result->y = data->zy;
+        result->x = data->xz;
+        result->y = data->yz;
         result->z = data->zz;
         result->w = data->zw;
     } else if (row == 3) {
-        result->x = data->wx;
-        result->y = data->wy;
-        result->z = data->wz;
+        result->x = data->xw;
+        result->y = data->yw;
+        result->z = data->zw;
         result->w = data->ww;
     }
 }
@@ -625,23 +625,23 @@ void copy_matrix4x4_column(vector4* result, matrix4x4* data, int column) {
 
     if (column == 0) {
         result->x = data->xx;
-        result->y = data->yx;
-        result->z = data->zx;
-        result->w = data->wx;
+        result->y = data->xy;
+        result->z = data->xz;
+        result->w = data->xw;
     } else if (column == 1) {
-        result->x = data->xy;
+        result->x = data->yx;
         result->y = data->yy;
-        result->z = data->zy;
-        result->w = data->wy;
+        result->z = data->yz;
+        result->w = data->yw;
     } else if (column == 2) {
-        result->x = data->xz;
-        result->y = data->yz;
+        result->x = data->zx;
+        result->y = data->zy;
         result->z = data->zz;
-        result->w = data->wz;
+        result->w = data->zw;
     } else if (column == 3) {
-        result->x = data->xw;
-        result->y = data->yw;
-        result->z = data->zw;
+        result->x = data->wx;
+        result->y = data->wy;
+        result->z = data->wz;
         result->w = data->ww;
     }
 }
@@ -717,7 +717,7 @@ void matrix4x4_sub(matrix4x4* result, matrix4x4* left, matrix4x4* right) {
     result->xw = left->ww - right->ww;
 }
 
-void matrrix4x4_scale(matrix4x4* result, matrix4x4* data, float factor) {
+void matrix4x4_scale(matrix4x4* result, matrix4x4* data, float factor) {
     result->xx = data->xx * factor;
     result->xy = data->xy * factor;
     result->xz = data->xz * factor;
@@ -739,21 +739,21 @@ void matrrix4x4_scale(matrix4x4* result, matrix4x4* data, float factor) {
     result->xw = data->ww * factor;
 }
 
-void matreix4x4_scale_aniso(matrix4x4* result, matrix4x4* data, float x, float y, float z) {
-    result->xx = data->xx * x;
-    result->xy = data->xy * x;
-    result->xz = data->xz * x;
-    result->xw = data->xw * x;
+void matrix4x4_scale_anisio(matrix4x4* result, matrix4x4* data, vector3 scale) {
+    result->xx = data->xx * scale.x;
+    result->xy = data->xy * scale.x;
+    result->xz = data->xz * scale.x;
+    result->xw = data->xw * scale.x;
 
-    result->yx = data->yx * y;
-    result->yy = data->yy * y;
-    result->yz = data->yz * y;
-    result->yw = data->yw * y;
+    result->yx = data->yx * scale.y;
+    result->yy = data->yy * scale.y;
+    result->yz = data->yz * scale.y;
+    result->yw = data->yw * scale.y;
 
-    result->zx = data->zx * z;
-    result->zy = data->zy * z;
-    result->zz = data->zz * z;
-    result->zw = data->zw * z;
+    result->zx = data->zx * scale.z;
+    result->zy = data->zy * scale.z;
+    result->zz = data->zz * scale.z;
+    result->zw = data->zw * scale.z;
 
     result->wx = data->wx;
     result->wy = data->wy;
@@ -766,8 +766,8 @@ void matrix4x4_mul(matrix4x4* result, matrix4x4* left, matrix4x4* right) {
     float right_data[4][4];
     float result_data[4][4];
 
-    get_gl_matrix4x4((float**) left_data, left);
-    get_gl_matrix4x4((float**) right_data, right);
+    get_gl_matrix4x4(left_data, left);
+    get_gl_matrix4x4(right_data, right);
 
     int counter, row, column;
     for (column = 0; column < 4; ++column) {
@@ -779,29 +779,24 @@ void matrix4x4_mul(matrix4x4* result, matrix4x4* left, matrix4x4* right) {
         }
     }
 
-    set_matrix4x4_from_gl(result, (float**) result_data);
+    set_matrix4x4_from_gl(result, result_data);
 }
 
-void matrix4x4_translate_in_place(matrix4x4* result, vector3 translation) {
-    vector4 translation4;
-    translation4.x = translation.x;
-    translation4.y = translation.y;
-    translation4.z = translation.z;
-    translation4.z = 0;
+void matrix4x4_translate_in_place(matrix4x4* result, vector3 trans) {
+    vector4 translation = make_vector4(trans.x, trans.y, trans.z, 0);
 
     vector4 row;
-
     copy_matrix4x4_row(&row, result, 0);
-    result->wx += vector4_inner_mul(row, translation4);
+    result->wx += vector4_inner_mul(row, translation);
 
     copy_matrix4x4_row(&row, result, 1);
-    result->wy += vector4_inner_mul(row, translation4);
+    result->wy += vector4_inner_mul(row, translation);
 
     copy_matrix4x4_row(&row, result, 2);
-    result->wz += vector4_inner_mul(row, translation4);
+    result->wz += vector4_inner_mul(row, translation);
 
     copy_matrix4x4_row(&row, result, 3);
-    result->ww += vector4_inner_mul(row, translation4);
+    result->ww += vector4_inner_mul(row, translation);
 }
 
 void matrix4x4_mul_vector4(vector4* result, matrix4x4* matrix, vector4* multiplier) {
@@ -820,17 +815,11 @@ void matrix4x4_mul_vector4(vector4* result, matrix4x4* matrix, vector4* multipli
                 (matrix->ww * multiplier->w);
 }
 
-void set_translate_matrix4x4(matrix4x4* matrix, vector3 translation) {
+void matrix4x4_translate(matrix4x4* matrix, vector3 translation) {
     set_matrix4x4_identity(matrix);
     matrix->wx = translation.x;
     matrix->wy = translation.y;
     matrix->wz = translation.z;
-}
-
-matrix4x4 make_translate_matrix4x4(vector3 translation) {
-    matrix4x4 result;
-    set_translate_matrix4x4(&result, translation);
-    return result;
 }
 
 void matrix4x4_from_vector3_mul_outer(matrix4x4* result, vector3 left, vector3 right) {
@@ -911,7 +900,7 @@ void matrix4x4_invert(matrix4x4* result_matrix, matrix4x4* matrix) {
     float data[4][4];
     float result[4][4];
 
-    get_gl_matrix4x4((float**) data, matrix);
+    get_gl_matrix4x4(data, matrix);
 
     float s[6];
     float c[6];
@@ -952,7 +941,7 @@ void matrix4x4_invert(matrix4x4* result_matrix, matrix4x4* matrix) {
     result[3][2] = (-data[3][0] * s[3] + data[3][1] * s[1] - data[3][2] * s[0]) * idet;
     result[3][3] = (data[2][0] * s[3] - data[2][1] * s[1] + data[2][2] * s[0]) * idet;
 
-    set_matrix4x4_from_gl(result_matrix, (float**) result);
+    set_matrix4x4_from_gl(result_matrix, result);
 }
 
 void matrix4x4_frustum(matrix4x4* result, float left, float right, float bottom, float top, float near, float far) {
@@ -995,23 +984,24 @@ void matrix4x4_perspective(matrix4x4* result, float y_fov, float aspect, float n
     result->xz = 0.f;
     result->xw = 0.f;
 
-    result->yw = 0.f;
-    result->yw = a;
-    result->yw = 0.f;
+    result->yx = 0.f;
+    result->yy = a;
+    result->yz = 0.f;
     result->yw = 0.f;
 
-    result->zw = 0.f;
-    result->zw = 0.f;
-    result->zw = -((far + near) / (far - near));
+    result->zx = 0.f;
+    result->zy = 0.f;
+    result->zz = -((far + near) / (far - near));
     result->zw = -1.f;
 
-    result->ww = 0.f;
-    result->ww = 0.f;
-    result->ww = -((2.f * far * near) / (far - near));
+    result->wx = 0.f;
+    result->wy = 0.f;
+    result->wz = -((2.f * far * near) / (far - near));
     result->ww = 0.f;
 }
 
 void matrix4x4_look_at(matrix4x4* result, vector3 eye, vector3 look_at_pos, vector3 up) {
+
     vector3 f = vector3_sub(look_at_pos, eye);
     f = vector3_norm(f);
 
@@ -1025,19 +1015,19 @@ void matrix4x4_look_at(matrix4x4* result, vector3 eye, vector3 look_at_pos, vect
     result->xz = -f.x;
     result->xw = 0.f;
 
-    result->yw = s.y;
-    result->yw = t.y;
-    result->yw = -f.y;
+    result->yx = s.y;
+    result->yy = t.y;
+    result->yz = -f.y;
     result->yw = 0.f;
 
-    result->zw = s.z;
-    result->zw = t.z;
-    result->zw = -f.z;
+    result->zx = s.z;
+    result->zy = t.z;
+    result->zz = -f.z;
     result->zw = 0.f;
 
-    result->ww = 0.f;
-    result->ww = 0.f;
-    result->ww = 0.f;
+    result->wx = 0.f;
+    result->wy = 0.f;
+    result->wz = 0.f;
     result->ww = 1.f;
 
     matrix4x4_translate_in_place(result, vector3_negate(eye));
@@ -1200,7 +1190,7 @@ quaternion quaternion_from_matrix4x4(matrix4x4* data) {
     int* p = perm;
 
     float matrix[4][4];
-    get_gl_matrix4x4((float**) matrix, data);
+    get_gl_matrix4x4(matrix, data);
 
     for (i = 0; i < 3; i++) {
         float m = matrix[i][i];
