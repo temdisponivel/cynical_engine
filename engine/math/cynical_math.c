@@ -7,11 +7,6 @@
 #include <stdio.h>
 #include <cynical_log.h>
 
-// ################ GENERAL #################################
-
-const float RAD_TO_DEGREE = 57.29578;
-const float DEGREE_TO_RAD = 0.01745329;
-
 
 // ################ VECTOR 2 ##########################
 
@@ -142,12 +137,6 @@ bool vector2_compare(vector2 a, vector2 b) {
 void vector2_string(char* result, vector2 vector) {
     char fmt[] = "x: %f y: %f";
     sprintf(result, fmt, vector.x, vector.y);
-}
-
-void vector2_print(vector2 vec) {
-    char buff[128];
-    vector2_string(buff, vec);
-    MESSAGE(buff);
 }
 
 // ################ VECTOR 3 ##########################
@@ -317,12 +306,6 @@ void vector3_string(char* result, vector3 vector) {
     sprintf(result, fmt, vector.x, vector.y, vector.z);
 }
 
-void vector3_print(vector3 vec) {
-    char buff[128];
-    vector3_string(buff, vec);
-    MESSAGE(buff);
-}
-
 // ################ VECTOR 4 ##########################
 
 void get_gl_vector4(float* result, vector4 vector) {
@@ -444,12 +427,6 @@ bool vector4_compare(vector4 a, vector4 b) {
 void vector4_string(char* result, vector4 vector) {
     char fmt[] = "x: %f y: %f z: %f w: %f";
     sprintf(result, fmt, vector.x, vector.y, vector.z, vector.w);
-}
-
-void vector4_print(vector4 vec) {
-    char buff[128];
-    vector4_string(buff, vec);
-    MESSAGE(buff);
 }
 
 // #################### MATRIX 4X4 #######################
@@ -1297,12 +1274,6 @@ bool quaternion_compare(quaternion a, quaternion b) {
 void quaternion_string(char* result, quaternion quat) {
     char fmt[] = "x: %f y: %f z: %f w: %f";
     sprintf(result, fmt, quat.x, quat.y, quat.z, quat.w);
-}
-
-void quaternion_print(quaternion quat) {
-    char buff[256];
-    quaternion_string(buff, quat);
-    MESSAGE(buff);
 }
 
 // ########################## TRANSFORM ###############################

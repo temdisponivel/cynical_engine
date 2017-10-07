@@ -6,7 +6,6 @@
 #define CYNICAL_ENGINE_CYNICAL_GRAPHICS_H
 
 #include "cynical_math.h"
-#include "cynical_entity.h"
 
 typedef enum {
     CAMERA_ORTHO,
@@ -36,7 +35,7 @@ typedef struct camera_s {
 
     matrix4x4* view;
     matrix4x4* projection;
-    world_entity* entity;
+    transform* transform;
 
     union {
         ortho_camera* ortho;

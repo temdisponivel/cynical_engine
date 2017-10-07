@@ -9,6 +9,8 @@
 input_state* main_input_state;
 GLFWwindow* input_window;
 
+void scroll_callback(GLFWwindow* window, double x_offset, double y_offset);
+
 input_state* make_input_state() {
     input_state* state = malloc(sizeof(input_state));
     for (int i = 0; i < TOTAL_KEYS; ++i) {
@@ -19,6 +21,17 @@ input_state* make_input_state() {
 
 void free_input_state(input_state* state) {
     free(state);
+}
+
+void input_init() {
+    main_input_state = make_input_state();
+    main_input_state->invert_y = true;
+    glfwSetScrollCallback(input_window, &scroll_callback);
+}
+
+void input_release() {
+    free_input_state(main_input_state);
+    glfwSetScrollCallback(input_window, NULL);
 }
 
 void update_input_state() {
@@ -182,6 +195,11 @@ void update_input_state() {
     UPDATE_KEY(input_window, MOUSE_BUTTON_7, true);
     UPDATE_KEY(input_window, MOUSE_BUTTON_8, true);
 
+    main_input_state->last_mouse_scroll = main_input_state->mouse_scroll;
+    main_input_state->mouse_scroll = vector2_zero();
+
+    main_input_state->last_mouse_position = main_input_state->mouse_position;
+
     double x, y;
     glfwGetCursorPos(input_window, &x, &y);
     // TODO: use window height and width here
@@ -213,4 +231,16 @@ bool is_key_pressed(key_code key) {
 
 bool is_key_released(key_code key) {
     return get_key_state(key) == KEY_STATE_RELEASED;
+}
+
+vector2 get_mouse_delta() {
+    return vector2_sub(main_input_state->mouse_position, main_input_state->last_mouse_position);
+}
+
+vector2 get_mouse_scroll() {
+    return vector2_sub(main_input_state->mouse_scroll, main_input_state->last_mouse_scroll);
+}
+
+void scroll_callback(GLFWwindow* window, double x_offset, double y_offset) {
+    main_input_state->mouse_scroll = make_vector2((float) x_offset, (float) y_offset);
 }

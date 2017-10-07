@@ -12,7 +12,7 @@ camera* make_base_camera(CAMERA_TYPE type) {
     result->type = type;
     result->projection = make_matrix4x4();
     result->view = make_matrix4x4();
-    result->entity = make_world_entity();
+    result->transform = make_transform();
 
     return result;
 }
@@ -20,7 +20,7 @@ camera* make_base_camera(CAMERA_TYPE type) {
 void free_camera(camera* camera) {
     free_matrix4x4(camera->view);
     free_matrix4x4(camera->projection);
-    free_world_entity(camera->entity);
+    free_transform(camera->transform);
 
     switch (camera->type) {
         case CAMERA_ORTHO:
@@ -36,13 +36,13 @@ void camera_update_matrix(camera* camera) {
     switch (camera->type) {
         case CAMERA_ORTHO:
             camera_set_ortho_matrix(camera->ortho,
-                                    camera->entity->transform,
+                                    camera->transform,
                                     camera->projection,
                                     camera->view);
             break;
         case CAMERA_PERSPECTIVE:
             camera_set_perspective_matrix(camera->perspective,
-                                          camera->entity->transform,
+                                          camera->transform,
                                           camera->projection,
                                           camera->view);
             break;
@@ -62,7 +62,7 @@ camera* make_perspective_camera(float fov, float aspect, float near, float far) 
 
     base->perspective = camera;
 
-    camera_set_perspective_matrix(camera, base->entity->transform, base->projection, base->view);
+    camera_set_perspective_matrix(camera, base->transform, base->projection, base->view);
 
     return base;
 }
@@ -88,7 +88,7 @@ camera* make_ortho_camera(float left, float right, float bottom, float top, floa
 
     base->ortho = camera;
 
-    camera_set_ortho_matrix(camera, base->entity->transform, base->projection, base->view);
+    camera_set_ortho_matrix(camera, base->transform, base->projection, base->view);
 
     return base;
 }
@@ -142,7 +142,7 @@ vector3 camera_screen_to_world_coord(camera* camera, vector3 screen_coord) {
     camera_get_vp_matrix(&vp, camera);
     matrix4x4_invert(&vp, &vp);
 
-    matrix4x4_print(&vp);
+    MATRIX4x4_PRINT(&vp);
 
     vector4 multiplied_vector;
     matrix4x4_mul_vector4(&multiplied_vector, &vp, &point);

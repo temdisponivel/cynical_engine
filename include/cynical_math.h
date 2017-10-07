@@ -6,6 +6,7 @@
 #define CYNICAL_ENGINE_CYNICAL_MATH_H
 
 #include <malloc.h>
+#include <cynical_log.h>
 
 #define false 0
 #define true 1
@@ -73,8 +74,9 @@ typedef struct transform_s {
 
 // ################ GENERAL #################################
 
-const float RAD_TO_DEGREE;
-const float DEGREE_TO_RAD;
+#define RAD_TO_DEGREE 57.29578f
+#define DEGREE_TO_RAD 0.01745329f
+#define SECONDS_TO_NANO 100000000
 
 static inline float normalize(float value, float min, float max) {
     return (value - min) / (max - min);
@@ -161,7 +163,11 @@ bool vector2_compare(vector2 a, vector2 b);
 
 void vector2_string(char* result, vector2 vector);
 
-void vector2_print(vector2 vec);
+#define VECTOR2_PRINT(VEC) {\
+    char buff[128];                 \
+    vector2_string(buff, VEC);       \
+    MESSAGE(buff);                   \
+}\
 
 // ################ VECTOR 3 ##########################
 
@@ -223,7 +229,11 @@ bool vector3_compare(vector3 a, vector3 b);
 
 void vector3_string(char* result, vector3 vector);
 
-void vector3_print(vector3 vec);
+#define VECTOR3_PRINT(VEC) {   \
+    char buff[128];            \
+    vector3_string(buff, VEC); \
+    MESSAGE(buff);             \
+}
 
 // ################ VECTOR 4 ##########################
 
@@ -265,9 +275,13 @@ bool vector4_compare(vector4 a, vector4 b);
 
 void vector4_string(char* result, vector4 vector);
 
-void vector4_print(vector4 vec);
-
 // #################### MATRIX 4X4 #######################
+
+#define VECTOR4_PRINT(VEC) {    \
+    char buff[128];             \
+    vector4_string(buff, VEC);  \
+    MESSAGE(buff);              \
+}
 
 
 void get_gl_matrix4x4(float result[4][4], matrix4x4* matrix);
@@ -326,7 +340,11 @@ bool matrix4x4_compare(matrix4x4* a, matrix4x4* b);
 
 void matrix4x4_string(char* result, matrix4x4* matrix);
 
-void matrix4x4_print(matrix4x4* matrix);
+#define MATRIX4x4_PRINT(MATRIX) {    \
+    char buff[512];                  \
+    matrix4x4_string(buff, MATRIX);  \
+    MESSAGE(buff);                   \
+}
 
 // ######################## QUATERNION ###########################################
 
@@ -366,7 +384,11 @@ bool quaternion_compare(quaternion a, quaternion b);
 
 void quaternion_string(char* result, quaternion quat);
 
-void quaternion_print(quaternion quat);
+#define QUATERNION_PRINT(QUAT) {       \
+    char buff[256];                 \
+    quaternion_string(buff, QUAT);  \
+    MESSAGE(buff);                  \
+}
 
 // ########################## TRANSFORM ###############################
 

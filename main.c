@@ -6,6 +6,7 @@
 #include <cynical_camera.h>
 #include <cynical_log.h>
 #include <cynical_input.h>
+#include <cynical_time.h>
 
 static const struct {
     float x, y;
@@ -44,20 +45,25 @@ void handle_input() {
 
     int shiftted = false;
 
+    float velocity = 10.f * get_delta_time();
+    if (shiftted) {
+        velocity = -velocity;
+    }
+
     if (is_key_pressed(KEY_ESCAPE)) {
         glfwSetWindowShouldClose(NULL, GLFW_TRUE);
     }
 
     if (is_key_pressed(MOUSE_BUTTON_LEFT)) {
-        triangle->rotation = quaternion_rotate(triangle->rotation, shiftted ? -10 : 10, vector3_right());
+        triangle->rotation = quaternion_rotate(triangle->rotation, velocity, vector3_right());
     }
 
     if (is_key_pressed(MOUSE_BUTTON_MIDDLE)) {
-        triangle->rotation = quaternion_rotate(triangle->rotation, shiftted ? -10 : 10, vector3_up());
+        triangle->rotation = quaternion_rotate(triangle->rotation, velocity, vector3_up());
     }
 
     if (is_key_pressed(MOUSE_BUTTON_RIGHT)) {
-        triangle->rotation = quaternion_rotate(triangle->rotation, shiftted ? -10 : 10, vector3_forward());
+        triangle->rotation = quaternion_rotate(triangle->rotation, velocity, vector3_forward());
     }
 
     if (is_key_pressed(KEY_RIGHT)) {
@@ -80,6 +86,16 @@ void handle_input() {
         triangle->position = vector3_add(triangle->position, vector3_down());
     }
 
+    if (is_key_pressed(KEY_KP_ADD)) {
+        set_time_scale(get_time_scale() + .1f);
+    } else if (is_key_pressed(KEY_KP_SUBTRACT)) {
+        set_time_scale(get_time_scale() - .1f);
+    }
+
+    vector3 cam_pos = game_camera->transform->position;
+    vector2 scroll = get_mouse_scroll();
+    game_camera->transform->position = vector3_add(cam_pos, make_vector3(scroll.x, 0, scroll.y));
+
     if (is_key_pressed(KEY_C)) {
         free_camera(game_camera);
 
@@ -89,10 +105,6 @@ void handle_input() {
         float ratio = width / (float) height;
         game_camera = make_ortho_camera(-ratio, ratio, -1.f, 1.f, 1, -10000);
     }
-}
-
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
-    game_camera->entity->transform->position.z += yoffset;
 }
 
 void test_matrix_revert();
@@ -114,10 +126,11 @@ int main(void) {
         glfwTerminate();
         exit(EXIT_FAILURE);
     }
-    glfwSetScrollCallback(window, scroll_callback);
+
     glfwMakeContextCurrent(window);
     glewInit();
     glfwSwapInterval(1);
+
     // NOTE: OpenGL error checks have been omitted for brevity
     glGenBuffers(1, &vertex_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
@@ -155,11 +168,14 @@ int main(void) {
     triangle = make_transform();
     matrix4x4 mvp;
 
-    main_input_state = make_input_state();
-    main_input_state->invert_y = true;
     input_window = window;
+    input_init();
+
+    time_init();
 
     while (!glfwWindowShouldClose(window)) {
+        time_start_frame();
+
         glClear(GL_COLOR_BUFFER_BIT);
 
         handle_input();
@@ -180,22 +196,15 @@ int main(void) {
 
         update_input_state();
 
-        //triangle->position = make_vector3(main_input_state->mouse_position.x, main_input_state->mouse_position.y, 0);
-        vector3 m = make_vector3(main_input_state->mouse_position.x, main_input_state->mouse_position.y, 1.f);
-
-        vector3 fake_pos = make_vector3(1, 1, -10000);
-        vector2 screen_mouse = camera_world_to_screen_coord(game_camera, fake_pos);
-        vector3 screen_pos = make_vector3(screen_mouse.x, screen_mouse.y, 1.f);
-
-        vector3 new_world_pos = camera_screen_to_world_coord(game_camera, screen_pos);
-
-        triangle->position = screen_pos;
-
-        //glfwtime
+        time_end_frame();
     }
-    free_input_state(main_input_state);
+
+    input_release();
+    time_release();
+
     glfwDestroyWindow(window);
     glfwTerminate();
+
     exit(EXIT_SUCCESS);
 }
 

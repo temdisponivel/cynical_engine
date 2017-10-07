@@ -157,15 +157,21 @@ GLFWwindow* input_window;
 
 typedef struct input_state_s {
     KEY_STATE states[TOTAL_KEYS];
+
     vector2 mouse_position;
+    vector2 last_mouse_position;
+
+    vector2 mouse_scroll;
+    vector2 last_mouse_scroll;
 
     bool invert_y;
 } input_state;
 
-input_state* main_input_state;
-
 input_state* make_input_state();
 void free_input_state(input_state* state);
+
+void input_init();
+void input_release();
 
 void update_input_state();
 
@@ -176,5 +182,8 @@ bool is_key_up(key_code key);
 
 bool is_key_pressed(key_code key);
 bool is_key_released(key_code key);
+
+vector2 get_mouse_delta();
+vector2 get_mouse_scroll();
 
 #endif //CYNICAL_ENGINE_MFE_INPUT_H

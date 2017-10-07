@@ -22,7 +22,7 @@
 #define INT_TO_STR(X) INT_TO_STR_2(X)
 
 #define LOG_HEADER(COLOR, TYPE) COLOR "["TYPE"]: "
-#define LOG_FOOTER "\n-> "__FILE__":" INT_TO_STR(__LINE__) "\n\n"; NORMAL_COLOR
+#define LOG_FOOTER "\n-> "__FILE__":"INT_TO_STR(__LINE__)"\n\n"; NORMAL_COLOR
 
 #define LOG_MESSAGE 0
 #define LOG_WARNING 1
