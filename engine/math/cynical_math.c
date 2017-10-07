@@ -163,6 +163,10 @@ vector3 make_vector3(float x, float y, float z) {
     return result;
 }
 
+vector3 make_vector3_vec2(vector2 vec, float z) {
+    return make_vector3(vec.x, vec.y, z);
+}
+
 vector3 vector3_negate(vector3 vector) {
     float x = -vector.x;
     float y = -vector.y;
@@ -332,6 +336,10 @@ vector4 make_vector4(float x, float y, float z, float w) {
     result.z = z;
     result.w = w;
     return result;
+}
+
+vector4 make_vector4_vec3(vector3 vec, float w) {
+    return make_vector4(vec.x, vec.y, vec.z, w);
 }
 
 vector4 vector4_negate(vector4 vector) {

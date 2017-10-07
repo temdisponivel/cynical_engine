@@ -183,6 +183,7 @@ bool is_key_up(key_code key);
 bool is_key_pressed(key_code key);
 bool is_key_released(key_code key);
 
+vector2 get_mouse_position();
 vector2 get_mouse_delta();
 vector2 get_mouse_scroll();
 

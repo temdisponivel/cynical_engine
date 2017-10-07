@@ -25,8 +25,8 @@ void free_input_state(input_state* state) {
 
 void input_init() {
     main_input_state = make_input_state();
-    main_input_state->invert_y = true;
     glfwSetScrollCallback(input_window, &scroll_callback);
+    update_input_state();
 }
 
 void input_release() {
@@ -202,10 +202,8 @@ void update_input_state() {
 
     double x, y;
     glfwGetCursorPos(input_window, &x, &y);
-    // TODO: use window height and width here
-    x = normalize((float) x, 0, 640);
-    y = normalize((float) y, 0, 480);
-    main_input_state->mouse_position = make_vector2((float) (x * 2.f) - 1.f, (float) (y * 2.f) - 1.f);
+
+    main_input_state->mouse_position = make_vector2((float) x, (float) y);
     if (main_input_state->invert_y)
         main_input_state->mouse_position.y = main_input_state->mouse_position.y * -1.f;
 }
@@ -231,6 +229,10 @@ bool is_key_pressed(key_code key) {
 
 bool is_key_released(key_code key) {
     return get_key_state(key) == KEY_STATE_RELEASED;
+}
+
+vector2 get_mouse_position() {
+    return main_input_state->mouse_position;
 }
 
 vector2 get_mouse_delta() {

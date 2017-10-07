@@ -163,12 +163,6 @@ bool vector2_compare(vector2 a, vector2 b);
 
 void vector2_string(char* result, vector2 vector);
 
-#define VECTOR2_PRINT(VEC) {\
-    char buff[128];                 \
-    vector2_string(buff, VEC);       \
-    MESSAGE(buff);                   \
-}\
-
 // ################ VECTOR 3 ##########################
 
 void get_gl_vector3(float* result, vector3 vector);
@@ -176,6 +170,8 @@ void get_gl_vector3(float* result, vector3 vector);
 vector3 get_vector3_from_gl(float* data);
 
 vector3 make_vector3(float x, float y, float z);
+
+vector3 make_vector3_vec2(vector2 vec, float z);
 
 vector3 vector3_negate(vector3 vector);
 
@@ -229,25 +225,20 @@ bool vector3_compare(vector3 a, vector3 b);
 
 void vector3_string(char* result, vector3 vector);
 
-#define VECTOR3_PRINT(VEC) {   \
-    char buff[128];            \
-    vector3_string(buff, VEC); \
-    MESSAGE(buff);             \
-}
-
 // ################ VECTOR 4 ##########################
+
+vector4 make_vector4(float x, float y, float z, float w);
+
+vector4 make_vector4_vec3(vector3 vec, float w);
+
+vector4 vector4_negate(vector4 vector);
+vector4 vector4_zero();
+
+vector4 vector4_one();
 
 void get_gl_vector4(float* result, vector4 vector);
 
 vector4 get_vector4_from_gl(float* data);
-
-vector4 make_vector4(float x, float y, float z, float w);
-
-vector4 vector4_negate(vector4 vector);
-
-vector4 vector4_zero();
-
-vector4 vector4_one();
 
 vector4 vector4_add(vector4 a, vector4 b);
 
@@ -276,13 +267,6 @@ bool vector4_compare(vector4 a, vector4 b);
 void vector4_string(char* result, vector4 vector);
 
 // #################### MATRIX 4X4 #######################
-
-#define VECTOR4_PRINT(VEC) {    \
-    char buff[128];             \
-    vector4_string(buff, VEC);  \
-    MESSAGE(buff);              \
-}
-
 
 void get_gl_matrix4x4(float result[4][4], matrix4x4* matrix);
 
@@ -340,11 +324,7 @@ bool matrix4x4_compare(matrix4x4* a, matrix4x4* b);
 
 void matrix4x4_string(char* result, matrix4x4* matrix);
 
-#define MATRIX4x4_PRINT(MATRIX) {    \
-    char buff[512];                  \
-    matrix4x4_string(buff, MATRIX);  \
-    MESSAGE(buff);                   \
-}
+
 
 // ######################## QUATERNION ###########################################
 
@@ -384,12 +364,6 @@ bool quaternion_compare(quaternion a, quaternion b);
 
 void quaternion_string(char* result, quaternion quat);
 
-#define QUATERNION_PRINT(QUAT) {       \
-    char buff[256];                 \
-    quaternion_string(buff, QUAT);  \
-    MESSAGE(buff);                  \
-}
-
 // ########################## TRANSFORM ###############################
 
 transform* make_transform();
@@ -397,5 +371,47 @@ transform* make_transform();
 void free_transform(transform* transform);
 
 void transform_update_matrix(transform* transform);
+
+#ifdef CYNICAL_DEBUG
+
+#define VECTOR2_PRINT(VEC) {\
+    char buff[128];                 \
+    vector2_string(buff, (VEC));       \
+    MESSAGE(buff);                   \
+}
+
+#define VECTOR3_PRINT(VEC) {   \
+    char buff[128];            \
+    vector3_string(buff, (VEC)); \
+    MESSAGE(buff);             \
+}
+
+#define VECTOR4_PRINT(VEC) {    \
+    char buff[128];             \
+    vector4_string(buff, (VEC));  \
+    MESSAGE(buff);              \
+}
+
+#define MATRIX4x4_PRINT(MATRIX) {    \
+    char buff[512];                  \
+    matrix4x4_string(buff, (MATRIX));  \
+    MESSAGE(buff);                   \
+}
+
+#define QUATERNION_PRINT(QUAT) {       \
+    char buff[256];                 \
+    quaternion_string(buff, (QUAT));  \
+    MESSAGE(buff);                  \
+}
+
+#else
+
+#define VECTOR2_PRINT(VEC)
+#define VECTOR3_PRINT(VEC)
+#define VECTOR4_PRINT(VEC)
+#define MATRIX4x4_PRINT(MATRIX)
+#define QUATERNION_PRINT(QUAT)
+
+#endif
 
 #endif //CYNICAL_ENGINE_CYNICAL_MATH_H

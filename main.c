@@ -92,9 +92,10 @@ void handle_input() {
         set_time_scale(get_time_scale() - .1f);
     }
 
-    vector3 cam_pos = game_camera->transform->position;
-    vector2 scroll = get_mouse_scroll();
-    game_camera->transform->position = vector3_add(cam_pos, make_vector3(scroll.x, 0, scroll.y));
+    vector2 scroll = get_mouse_delta();
+    VECTOR2_PRINT(scroll);
+    game_camera->transform->position = vector3_add(vector3_zero(), make_vector3_vec2(scroll, -5));
+    VECTOR3_PRINT(game_camera->transform->position);
 
     if (is_key_pressed(KEY_C)) {
         free_camera(game_camera);
@@ -172,6 +173,8 @@ int main(void) {
     input_init();
 
     time_init();
+
+    game_camera->transform->position.z = -5;
 
     while (!glfwWindowShouldClose(window)) {
         time_start_frame();
