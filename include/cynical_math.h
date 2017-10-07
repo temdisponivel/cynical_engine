@@ -7,6 +7,11 @@
 
 #include <malloc.h>
 
+#define false 0
+#define true 1
+
+typedef short bool;
+
 typedef struct vector2_s {
     float x;
     float y;

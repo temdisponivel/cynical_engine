@@ -20,29 +20,36 @@
 #define INT_TO_STR_2(X) #X
 #define INT_TO_STR(X) INT_TO_STR_2(X)
 
-#define LOG_HEADER(COLOR,TYPE) COLOR "["TYPE"]: "
+#define LOG_HEADER(COLOR, TYPE) COLOR "["TYPE"]: "
 #define LOG_FOOTER "\n-> "__FILE__":" INT_TO_STR(__LINE__) "\n\n"; NORMAL_COLOR
 
-typedef enum {
-    LOG_MESSAGE,
-    LOG_WARNING,
-    LOG_ERROR,
-} LOG_TYPE;
+#define LOG_MESSAGE 0
+#define LOG_WARNING 1
+#define LOG_ERROR 2
 
 #ifdef CYNICAL_DEBUG
 
 #define MESSAGE(MSG) {\
-    const char message[] = LOG_HEADER(NORMAL_COLOR,"MESSAGE") MSG LOG_FOOTER; \
+    char header[] = LOG_HEADER(NORMAL_COLOR,"MESSAGE");\
+    char footer[] = LOG_FOOTER;\
+    char message[sizeof(header) + sizeof(MSG) + sizeof(footer)];\
+    sprintf(message, "%s%s%s",header, MSG, footer);\
     printf(message);\
 }\
 
 #define WARNING(WARN_MESSAGE) {\
-    const char message[] = LOG_HEADER(WARNING_COLOR,"WARNING") WARN_MESSAGE LOG_FOOTER; \
+    char header[] = LOG_HEADER(WARNING_COLOR,"WARNING");\
+    char footer[] = LOG_FOOTER;\
+    char message[sizeof(header) + sizeof(WARN_MESSAGE) + sizeof(footer)];\
+    sprintf(message, "%s%s%s",header, WARN_MESSAGE, footer);\
     printf(message);\
 }\
 
 #define ERROR(ERR_MESSAGE) {\
-    const char message[] = LOG_HEADER(ERROR_COLOR,"ERROR") ERR_MESSAGE LOG_FOOTER; \
+    char header[] = LOG_HEADER(ERROR_COLOR,"ERROR");\
+    char footer[] = LOG_FOOTER;\
+    char message[sizeof(header) + sizeof(ERR_MESSAGE) + sizeof(footer)];\
+    sprintf(message, "%s%s%s",header, ERR_MESSAGE, footer);\
     printf(message);\
 }\
 
@@ -52,7 +59,7 @@ typedef enum {
     }\
 }\
 
-#define LOG(MSG,TYPE) {\
+#define LOG(MSG, TYPE) {\
     switch (TYPE) {\
         case LOG_WARNING:\
             WARNING(MSG); \

@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <cynical_camera.h>
 #include <cynical_log.h>
+#include <cynical_input.h>
 
 static const struct {
     float x, y;
@@ -39,55 +40,54 @@ static void error_callback(int error, const char* description) {
 transform* triangle;
 camera* game_camera;
 
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    int shiftted = (mods & GLFW_MOD_SHIFT) == GLFW_MOD_SHIFT;
+void handle_input() {
 
-    if (action == GLFW_PRESS) {
-        if (key == GLFW_KEY_ESCAPE) {
-            glfwSetWindowShouldClose(window, GLFW_TRUE);
-        }
+    int shiftted = false;
 
-        if (key == GLFW_KEY_X) {
-            triangle->rotation = quaternion_rotate(triangle->rotation, shiftted ? -10 : 10, vector3_right());
-        }
+    if (is_key_pressed(KEY_ESCAPE)) {
+        glfwSetWindowShouldClose(NULL, GLFW_TRUE);
+    }
 
-        if (key == GLFW_KEY_Y) {
-            triangle->rotation = quaternion_rotate(triangle->rotation, shiftted ? -10 : 10, vector3_up());
-        }
+    if (is_key_pressed(MOUSE_BUTTON_LEFT)) {
+        triangle->rotation = quaternion_rotate(triangle->rotation, shiftted ? -10 : 10, vector3_right());
+    }
 
-        if (key == GLFW_KEY_Z) {
-            triangle->rotation = quaternion_rotate(triangle->rotation, shiftted ? -10 : 10, vector3_forward());
-        }
+    if (is_key_pressed(MOUSE_BUTTON_MIDDLE)) {
+        triangle->rotation = quaternion_rotate(triangle->rotation, shiftted ? -10 : 10, vector3_up());
+    }
 
-        if (key == GLFW_KEY_S) {
-            triangle->scale = vector3_scale(triangle->scale, shiftted ? .5f : 2.0f);
-        }
+    if (is_key_pressed(MOUSE_BUTTON_RIGHT)) {
+        triangle->rotation = quaternion_rotate(triangle->rotation, shiftted ? -10 : 10, vector3_forward());
+    }
 
-        if (key == GLFW_KEY_RIGHT) {
-            triangle->position = vector3_add(triangle->position, vector3_right());
-        }
+    if (is_key_pressed(KEY_RIGHT)) {
+        triangle->scale = vector3_scale(triangle->scale, shiftted ? .5f : 2.0f);
+    }
 
-        if (key == GLFW_KEY_LEFT) {
-            triangle->position = vector3_add(triangle->position, vector3_left());
-        }
+    if (is_key_pressed(KEY_RIGHT)) {
+        triangle->position = vector3_add(triangle->position, vector3_right());
+    }
 
-        if (key == GLFW_KEY_UP) {
-            triangle->position = vector3_add(triangle->position, vector3_up());
-        }
+    if (is_key_pressed(KEY_LEFT)) {
+        triangle->position = vector3_add(triangle->position, vector3_left());
+    }
 
-        if (key == GLFW_KEY_DOWN) {
-            triangle->position = vector3_add(triangle->position, vector3_down());
-        }
+    if (is_key_pressed(KEY_UP)) {
+        triangle->position = vector3_add(triangle->position, vector3_up());
+    }
 
-        if (key == GLFW_KEY_C) {
-            free_camera(game_camera);
+    if (is_key_pressed(KEY_DOWN)) {
+        triangle->position = vector3_add(triangle->position, vector3_down());
+    }
 
-            //matrix4x4_ortho(projection, -ratio, ratio, -1.f, 1.f, 1.f, -1.f);
-            int width, height;
-            glfwGetFramebufferSize(window, &width, &height);
-            float ratio = width / (float) height;
-            game_camera = make_ortho_camera(-ratio, ratio, -1.f, 1.f, 1, -10000);
-        }
+    if (is_key_pressed(KEY_C)) {
+        free_camera(game_camera);
+
+        //matrix4x4_ortho(projection, -ratio, ratio, -1.f, 1.f, 1.f, -1.f);
+        int width, height;
+        glfwGetFramebufferSize(NULL, &width, &height);
+        float ratio = width / (float) height;
+        game_camera = make_ortho_camera(-ratio, ratio, -1.f, 1.f, 1, -10000);
     }
 }
 
@@ -96,12 +96,6 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 }
 
 int main(void) {
-    LOG("Hello message!", LOG_MESSAGE);
-    LOG("Hello warning!", LOG_WARNING);
-    LOG("Hello error!", LOG_ERROR);
-
-    ASSERT(1);
-    ASSERT(0);
 
     GLFWwindow* window;
     GLuint vertex_buffer, vertex_shader, fragment_shader, program;
@@ -116,7 +110,6 @@ int main(void) {
         glfwTerminate();
         exit(EXIT_FAILURE);
     }
-    glfwSetKeyCallback(window, key_callback);
     glfwSetScrollCallback(window, scroll_callback);
     glfwMakeContextCurrent(window);
     glewInit();
@@ -155,8 +148,13 @@ int main(void) {
     triangle = make_transform();
     matrix4x4 mvp;
 
+    main_input_state = make_input_state();
+    input_window = window;
+
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT);
+
+        handle_input();
 
         transform_update_matrix(triangle);
         camera_update_matrix(game_camera);
@@ -172,7 +170,12 @@ int main(void) {
         glDrawArrays(GL_TRIANGLES, 0, 3);
         glfwSwapBuffers(window);
         glfwPollEvents();
+
+        update_input_state();
+
+        triangle->position = make_vector3(main_input_state->mouse_position.x, main_input_state->mouse_position.y, 0);
     }
+    free_input_state(main_input_state);
     glfwDestroyWindow(window);
     glfwTerminate();
     exit(EXIT_SUCCESS);
