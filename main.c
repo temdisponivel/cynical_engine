@@ -7,6 +7,8 @@
 #include <cynical_log.h>
 #include <cynical_input.h>
 #include <cynical_time.h>
+#include <cynical_video.h>
+#include <cynical_engine.h>
 
 static const struct {
     float x, y;
@@ -34,12 +36,97 @@ static const char* fragment_shader_text =
                 "    gl_FragColor = vec4(color, 1.0);\n"
                 "}\n";
 
-static void error_callback(int error, const char* description) {
-    fprintf(stderr, "Error: %s\n", description);
-}
+static void error_callback(int error, const char* description);
+
+void setup();
+
+void update();
+
+void draw();
+
+void handle_input();
 
 transform* triangle;
 camera* game_camera;
+
+GLuint vertex_buffer, vertex_shader, fragment_shader, program;
+GLint mvp_location, vpos_location, vcol_location;
+matrix4x4 mvp;
+
+int main(void) {
+
+    if (!engine_init(&update, &draw)) {
+        ERROR(engine_error_description);
+        exit(EXIT_FAILURE);
+    }
+
+    setup();
+
+    run_loop();
+
+    engine_release();
+    exit(EXIT_SUCCESS);
+}
+
+void setup() {
+
+    glGenBuffers(1, &vertex_buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertex_shader, 1, &vertex_shader_text, NULL);
+    glCompileShader(vertex_shader);
+
+    fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragment_shader, 1, &fragment_shader_text, NULL);
+    glCompileShader(fragment_shader);
+
+    program = glCreateProgram();
+    glAttachShader(program, vertex_shader);
+    glAttachShader(program, fragment_shader);
+    glLinkProgram(program);
+
+    mvp_location = glGetUniformLocation(program, "MVP");
+    vpos_location = glGetAttribLocation(program, "vPos");
+    vcol_location = glGetAttribLocation(program, "vCol");
+
+
+    glEnableVertexAttribArray(vpos_location);
+    glVertexAttribPointer(vpos_location, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*) 0);
+
+    glEnableVertexAttribArray(vcol_location);
+    glVertexAttribPointer(vcol_location, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*) (sizeof(float) * 2));
+
+    vector2 frame_buffer = main_window->frame_buffer_size;
+
+    game_camera = make_perspective_camera(90, frame_buffer.x / frame_buffer.y, 0.0001f, -10000);
+    //game_camera = make_ortho_camera(-ratio, ratio, -1.f, 1.f, 0.0001f, -10000);
+
+    triangle = make_transform();
+    game_camera->transform->position.z = -5;
+}
+
+void update() {
+    handle_input();
+}
+
+void draw() {
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    transform_update_matrix(triangle);
+    camera_update_matrix(game_camera);
+
+    camera_get_vp_matrix(&mvp, game_camera);
+    matrix4x4_mul(&mvp, &mvp, triangle->matrix);
+
+    float mvp_data[4][4];
+    get_gl_matrix4x4(mvp_data, &mvp);
+    glUseProgram(program);
+    glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*) mvp_data);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glfwSwapBuffers(main_window->glfw_main_window);
+}
 
 void handle_input() {
 
@@ -108,150 +195,6 @@ void handle_input() {
     }
 }
 
-void test_matrix_revert();
-
-int main(void) {
-
-    test_matrix_revert();
-
-    GLFWwindow* window;
-    GLuint vertex_buffer, vertex_shader, fragment_shader, program;
-    GLint mvp_location, vpos_location, vcol_location;
-    glfwSetErrorCallback(error_callback);
-    if (!glfwInit())
-        exit(EXIT_FAILURE);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-    window = glfwCreateWindow(640, 480, "Simple example", NULL, NULL);
-    if (!window) {
-        glfwTerminate();
-        exit(EXIT_FAILURE);
-    }
-
-    glfwMakeContextCurrent(window);
-    glewInit();
-    glfwSwapInterval(1);
-
-    // NOTE: OpenGL error checks have been omitted for brevity
-    glGenBuffers(1, &vertex_buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertex_shader, 1, &vertex_shader_text, NULL);
-    glCompileShader(vertex_shader);
-    fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragment_shader, 1, &fragment_shader_text, NULL);
-    glCompileShader(fragment_shader);
-    program = glCreateProgram();
-    glAttachShader(program, vertex_shader);
-    glAttachShader(program, fragment_shader);
-    glLinkProgram(program);
-    mvp_location = glGetUniformLocation(program, "MVP");
-    vpos_location = glGetAttribLocation(program, "vPos");
-    vcol_location = glGetAttribLocation(program, "vCol");
-    glEnableVertexAttribArray(vpos_location);
-    glVertexAttribPointer(vpos_location, 2, GL_FLOAT, GL_FALSE,
-                          sizeof(float) * 5, (void*) 0);
-    glEnableVertexAttribArray(vcol_location);
-    glVertexAttribPointer(vcol_location, 3, GL_FLOAT, GL_FALSE,
-                          sizeof(float) * 5, (void*) (sizeof(float) * 2));
-
-    glfwSwapInterval(1);
-
-    float ratio;
-    int width, height;
-    glfwGetFramebufferSize(window, &width, &height);
-    ratio = width / (float) height;
-    glViewport(0, 0, width, height);
-
-    game_camera = make_perspective_camera(90, ratio, 0.0001f, -10000);
-    //game_camera = make_ortho_camera(-ratio, ratio, -1.f, 1.f, 0.0001f, -10000);
-    triangle = make_transform();
-    matrix4x4 mvp;
-
-    input_window = window;
-    input_init();
-
-    time_init();
-
-    game_camera->transform->position.z = -5;
-
-    while (!glfwWindowShouldClose(window)) {
-        time_start_frame();
-
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        handle_input();
-
-        transform_update_matrix(triangle);
-        camera_update_matrix(game_camera);
-
-        camera_get_vp_matrix(&mvp, game_camera);
-        matrix4x4_mul(&mvp, &mvp, triangle->matrix);
-
-        float mvp_data[4][4];
-        get_gl_matrix4x4(mvp_data, &mvp);
-        glUseProgram(program);
-        glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*) mvp_data);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-
-        update_input_state();
-
-        time_end_frame();
-    }
-
-    input_release();
-    time_release();
-
-    glfwDestroyWindow(window);
-    glfwTerminate();
-
-    exit(EXIT_SUCCESS);
-}
-
-void compare(matrix4x4 matrix, mat4x4 mat);
-
-void test_matrix_revert() {
-    const float ratio = 640 / 480.f;
-    matrix4x4 projection;
-    matrix4x4_perspective(&projection, 90, ratio, 0.00001, -10000);
-
-    mat4x4 mat_proj;
-    mat4x4_perspective(mat_proj, to_rad(90), ratio, 0.00001, -10000);
-
-    MESSAGE("COMPARE PERSPECTIVE");
-    compare(projection, mat_proj);
-
-    mat4x4 mat_project_invertion;
-    mat4x4_invert(mat_project_invertion, mat_proj);
-
-    matrix4x4 invertion_result;
-    matrix4x4_invert(&invertion_result, &projection);
-
-    MESSAGE("COMPARE INVERTION");
-    compare(invertion_result, mat_project_invertion);
-}
-
-void compare(matrix4x4 matrix, mat4x4 mat) {
-    ASSERT_BREAK(matrix.xx == mat[0][0]);
-    ASSERT_BREAK(matrix.xy == mat[0][1]);
-    ASSERT_BREAK(matrix.xz == mat[0][2]);
-    ASSERT_BREAK(matrix.xw == mat[0][3]);
-
-    ASSERT_BREAK(matrix.yx == mat[1][0]);
-    ASSERT_BREAK(matrix.yy == mat[1][1]);
-    ASSERT_BREAK(matrix.yz == mat[1][2]);
-    ASSERT_BREAK(matrix.yw == mat[1][3]);
-
-    ASSERT_BREAK(matrix.zx == mat[2][0]);
-    ASSERT_BREAK(matrix.zy == mat[2][1]);
-    ASSERT_BREAK(matrix.zz == mat[2][2]);
-    ASSERT_BREAK(matrix.zw == mat[2][3]);
-
-    ASSERT_BREAK(matrix.wx == mat[3][0]);
-    ASSERT_BREAK(matrix.wy == mat[3][1]);
-    ASSERT_BREAK(matrix.wz == mat[3][2]);
-    ASSERT_BREAK(matrix.ww == mat[3][3]);
+static void error_callback(int error, const char* description) {
+    fprintf(stderr, "Error: %s\n", description);
 }

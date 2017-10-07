@@ -101,17 +101,17 @@ void free_ortho_camera(ortho_camera* camera) {
 
 void camera_set_perspective_matrix(
         perspective_camera* perspective,
-        transform* trans,
+        transform* camera_trans,
         matrix4x4* projection,
         matrix4x4* view) {
     set_matrix4x4_identity(projection);
     matrix4x4_perspective(projection, perspective->fov, perspective->aspect, perspective->near, perspective->far);
 
     set_matrix4x4_identity(view);
-    matrix4x4_look_at(view, trans->position, trans->forward, trans->up);
+    matrix4x4_look_at(view, camera_trans->position, camera_trans->forward, camera_trans->up);
 }
 
-void camera_set_ortho_matrix(ortho_camera* ortho, transform* trans, matrix4x4* projection, matrix4x4* view) {
+void camera_set_ortho_matrix(ortho_camera* ortho, transform* camera_trans, matrix4x4* projection, matrix4x4* view) {
     set_matrix4x4_identity(projection);
     matrix4x4_ortho(
             projection,
@@ -124,7 +124,7 @@ void camera_set_ortho_matrix(ortho_camera* ortho, transform* trans, matrix4x4* p
     );
 
     set_matrix4x4_identity(view);
-    matrix4x4_look_at(view, trans->position, trans->forward, trans->up);
+    matrix4x4_look_at(view, camera_trans->position, camera_trans->forward, camera_trans->up);
 }
 
 void camera_get_vp_matrix(matrix4x4* result, camera* camera) {

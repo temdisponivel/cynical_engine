@@ -268,9 +268,9 @@ void vector4_string(char* result, vector4 vector);
 
 // #################### MATRIX 4X4 #######################
 
-void get_gl_matrix4x4(float result[4][4], matrix4x4* matrix);
+void get_gl_matrix4x4(float result[4][4], const matrix4x4* matrix);
 
-void set_matrix4x4_from_gl(matrix4x4* result, float data[4][4]);
+void set_matrix4x4_from_gl(matrix4x4* result, const float data[4][4]);
 
 void set_matrix4x4_identity(matrix4x4* matrix);
 
@@ -278,39 +278,39 @@ matrix4x4* make_matrix4x4();
 
 void free_matrix4x4(matrix4x4* matrix);
 
-void copy_matrix4x4(matrix4x4* result, matrix4x4* data);
+void copy_matrix4x4(matrix4x4* result, const matrix4x4* data);
 
-void copy_matrix4x4_row(vector4* result, matrix4x4* data, int row);
+void copy_matrix4x4_row(vector4* result, const matrix4x4* data, int row);
 
-void copy_matrix4x4_column(vector4* result, matrix4x4* data, int column);
+void copy_matrix4x4_column(vector4* result, const matrix4x4* data, int column);
 
 void matrix4x4_transpose(matrix4x4* matrix);
 
-void matrix4x4_add(matrix4x4* result, matrix4x4* a, matrix4x4* b);
+void matrix4x4_add(matrix4x4* result, const matrix4x4* a, const matrix4x4* b);
 
-void matrix4x4_sub(matrix4x4* result, matrix4x4* left, matrix4x4* right);
+void matrix4x4_sub(matrix4x4* result, const matrix4x4* left, const matrix4x4* right);
 
-void matrix4x4_scale(matrix4x4* result, matrix4x4* data, float factor);
+void matrix4x4_scale(matrix4x4* result, const matrix4x4* data, float factor);
 
-void matrix4x4_scale_anisio(matrix4x4* result, matrix4x4* data, vector3 scale);
+void matrix4x4_scale_anisio(matrix4x4* result, const matrix4x4* data, vector3 scale);
 
-void matrix4x4_mul(matrix4x4* result, matrix4x4* left, matrix4x4* right);
+void matrix4x4_mul(matrix4x4* result, const matrix4x4* left, const matrix4x4* right);
 
 void matrix4x4_translate_in_place(matrix4x4* result, vector3 trans);
 
-void matrix4x4_mul_vector4(vector4* result, matrix4x4* matrix, vector4* multiplier);
+void matrix4x4_mul_vector4(vector4* result, const matrix4x4* matrix, const vector4* multiplier);
 
 void matrix4x4_translate(matrix4x4* matrix, vector3 translation);
 
 void matrix4x4_from_vector3_mul_outer(matrix4x4* result, vector3 left, vector3 right);
 
-void matrix4x4_rotate_x(matrix4x4* result, matrix4x4* data, float degrees);
+void matrix4x4_rotate_x(matrix4x4* result, const matrix4x4* data, float degrees);
 
-void matrix4x4_rotate_y(matrix4x4* result, matrix4x4* data, float degrees);
+void matrix4x4_rotate_y(matrix4x4* result, const matrix4x4* data, float degrees);
 
-void matrix4x4_rotate_z(matrix4x4* result, matrix4x4* data, float degrees);
+void matrix4x4_rotate_z(matrix4x4* result, const matrix4x4* data, float degrees);
 
-void matrix4x4_invert(matrix4x4* result_matrix, matrix4x4* matrix);
+void matrix4x4_invert(matrix4x4* result_matrix, const matrix4x4* matrix);
 
 void matrix4x4_frustum(matrix4x4* result, float left, float right, float bottom, float top, float near, float far);
 
@@ -320,11 +320,9 @@ void matrix4x4_perspective(matrix4x4* result, float y_fov, float aspect, float n
 
 void matrix4x4_look_at(matrix4x4* result, vector3 eye, vector3 look_at_pos, vector3 up);
 
-bool matrix4x4_compare(matrix4x4* a, matrix4x4* b);
+bool matrix4x4_compare(const matrix4x4* a, const matrix4x4* b);
 
-void matrix4x4_string(char* result, matrix4x4* matrix);
-
-
+void matrix4x4_string(char* result, const matrix4x4* matrix);
 
 // ######################## QUATERNION ###########################################
 
@@ -350,7 +348,7 @@ vector3 quaternion_mul_vec3(quaternion quat, vector3 vector);
 
 void set_matrix4x4_data_from_quaternion(matrix4x4* result, quaternion quat);
 
-void matrix4x4_mul_quat(matrix4x4* result, matrix4x4* matrix, quaternion quat);
+void matrix4x4_mul_quat(matrix4x4* result, const matrix4x4* matrix, quaternion quat);
 
 quaternion quaternion_from_matrix4x4(matrix4x4* data);
 

@@ -153,8 +153,6 @@ typedef enum {
 
 typedef unsigned short key_code;
 
-GLFWwindow* input_window;
-
 typedef struct input_state_s {
     KEY_STATE states[TOTAL_KEYS];
 
