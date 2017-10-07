@@ -3,6 +3,11 @@ project(cynical_engine)
 
 set(CMAKE_C_STANDARD 99)
 
+# DEFINITIONS
+if (${CMAKE_BUILD_TYPE} STREQUAL Debug)
+    add_definitions(-DCYNICAL_DEBUG)
+endif ()
+
 # DEPENDENCIES
 set(DEP_ROOT_DIR ${CMAKE_SOURCE_DIR}/dependencies)
 set(DEP_DIR ${DEP_ROOT_DIR}/x86)
@@ -31,7 +36,7 @@ include_directories(${DEP_ROOT_DIR}/include)
 include_directories(include)
 
 ################### BUILDING AND LINKING #############
-set(SOURCE_FILES main.c include/cynical_math.h include/cynical_camera.h include/cynical_entity.h engine/math/cynical_math.c engine/graphics/cynical_camera.c engine/entity/cynical_entity.c)
+set(SOURCE_FILES main.c include/cynical_math.h include/cynical_camera.h include/cynical_entity.h engine/math/cynical_math.c engine/graphics/cynical_camera.c engine/entity/cynical_entity.c include/cynical_log.h)
 add_executable(cynical_engine ${SOURCE_FILES})
 
 target_link_libraries(cynical_engine "${GL_LIBRARIES} ${GLFW_LIBRARIES} ${GLEW_LIBRARIES}")

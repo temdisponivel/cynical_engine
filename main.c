@@ -4,6 +4,7 @@
 #include "include/cynical_math.h"
 #include <stdio.h>
 #include <cynical_camera.h>
+#include <cynical_log.h>
 
 static const struct {
     float x, y;
@@ -95,6 +96,12 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 }
 
 int main(void) {
+    LOG("Hello message!", LOG_MESSAGE);
+    LOG("Hello warning!", LOG_WARNING);
+    LOG("Hello error!", LOG_ERROR);
+
+    ASSERT(1);
+    ASSERT(0);
 
     GLFWwindow* window;
     GLuint vertex_buffer, vertex_shader, fragment_shader, program;
