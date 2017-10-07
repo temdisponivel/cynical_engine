@@ -158,6 +158,8 @@ GLFWwindow* input_window;
 typedef struct input_state_s {
     KEY_STATE states[TOTAL_KEYS];
     vector2 mouse_position;
+
+    bool invert_y;
 } input_state;
 
 input_state* main_input_state;

@@ -184,9 +184,12 @@ void update_input_state() {
 
     double x, y;
     glfwGetCursorPos(input_window, &x, &y);
-    x = normalize((float) x, 0, 800);
-    y = normalize((float) y, 0, 600);
-    main_input_state->mouse_position = make_vector2((float) x, (float) y);
+    // TODO: use window height and width here
+    x = normalize((float) x, 0, 640);
+    y = normalize((float) y, 0, 480);
+    main_input_state->mouse_position = make_vector2((float) (x * 2.f) - 1.f, (float) (y * 2.f) - 1.f);
+    if (main_input_state->invert_y)
+        main_input_state->mouse_position.y = main_input_state->mouse_position.y * -1.f;
 }
 
 KEY_STATE get_key_state(key_code key) {

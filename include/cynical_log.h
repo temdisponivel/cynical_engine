@@ -6,6 +6,7 @@
 #define CYNICAL_ENGINE_CYNICAL_LOG_H
 
 #include <stdio.h>
+#include <signal.h>
 
 #if unix
 #define ERROR_COLOR   "\x1B[31m"
@@ -32,46 +33,62 @@
 #define MESSAGE(MSG) {\
     char header[] = LOG_HEADER(NORMAL_COLOR,"MESSAGE");\
     char footer[] = LOG_FOOTER;\
-    char message[sizeof(header) + sizeof(MSG) + sizeof(footer)];\
-    sprintf(message, "%s%s%s",header, MSG, footer);\
+    char message[sizeof(header) + sizeof((MSG)) + sizeof(footer)];\
+    sprintf(message, "%s%s%s",header, (MSG), footer);\
     printf(message);\
-}\
+}
 
 #define WARNING(WARN_MESSAGE) {\
     char header[] = LOG_HEADER(WARNING_COLOR,"WARNING");\
     char footer[] = LOG_FOOTER;\
-    char message[sizeof(header) + sizeof(WARN_MESSAGE) + sizeof(footer)];\
-    sprintf(message, "%s%s%s",header, WARN_MESSAGE, footer);\
+    char message[sizeof(header) + sizeof((WARN_MESSAGE)) + sizeof(footer)];\
+    sprintf(message, "%s%s%s",header, (WARN_MESSAGE), footer);\
     printf(message);\
-}\
+}
 
 #define ERROR(ERR_MESSAGE) {\
     char header[] = LOG_HEADER(ERROR_COLOR,"ERROR");\
     char footer[] = LOG_FOOTER;\
-    char message[sizeof(header) + sizeof(ERR_MESSAGE) + sizeof(footer)];\
-    sprintf(message, "%s%s%s",header, ERR_MESSAGE, footer);\
+    char message[sizeof(header) + sizeof((ERR_MESSAGE)) + sizeof(footer)];\
+    sprintf(message, "%s%s%s",header, (ERR_MESSAGE), footer);\
     printf(message);\
-}\
+}
 
-#define ASSERT(result) {\
-    if (!result) {\
+#define ASSERT(RESULT) {\
+    if (!(RESULT)) {\
         ERROR("Assertion failed!");\
     }\
-}\
+}
+
+#define ASSERT_BREAK(RESULT) {\
+    if (!(RESULT)) {\
+        ERROR("Assertion failed! Breaking into debugger!");\
+        BREAK();\
+    }\
+}
+
+#define ASSERT_EXIT(RESULT,EXIT_CODE) {\
+    if (!(RESULT)) {\
+        ERROR("Assertion failed! Exiting program!");\
+        exit(EXIT_CODE);\
+    }\
+}
+
+#define BREAK() __asm__("int $3");
 
 #define LOG(MSG, TYPE) {\
     switch (TYPE) {\
         case LOG_WARNING:\
-            WARNING(MSG); \
+            WARNING((MSG)); \
             break;\
         case LOG_ERROR:\
-            ERROR(MSG); \
+            ERROR((MSG)); \
             break;\
         default:\
-            MESSAGE(MSG); \
+            MESSAGE((MSG)); \
             break;\
     }\
-}\
+}
 
 #else
 
@@ -80,6 +97,9 @@
 #define ERROR(ERR_MESSAGE)
 #define ASSERT(RESULT)
 #define LOG(MESSAGE,TYPE)
+#define ASSERT_BREAK(RESULT)
+#define BREAK()
+#define ASSERT_EXIT(RESULT,EXIT_CODE)
 
 #endif
 

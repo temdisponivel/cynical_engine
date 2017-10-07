@@ -95,7 +95,11 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
     game_camera->entity->transform->position.z += yoffset;
 }
 
+void test_matrix_revert();
+
 int main(void) {
+
+    test_matrix_revert();
 
     GLFWwindow* window;
     GLuint vertex_buffer, vertex_shader, fragment_shader, program;
@@ -138,17 +142,21 @@ int main(void) {
     glVertexAttribPointer(vcol_location, 3, GL_FLOAT, GL_FALSE,
                           sizeof(float) * 5, (void*) (sizeof(float) * 2));
 
+    glfwSwapInterval(1);
+
     float ratio;
     int width, height;
     glfwGetFramebufferSize(window, &width, &height);
     ratio = width / (float) height;
     glViewport(0, 0, width, height);
 
-    game_camera = make_perspective_camera(90, ratio, 0, -1000);
+    game_camera = make_perspective_camera(90, ratio, 0.0001f, -10000);
+    //game_camera = make_ortho_camera(-ratio, ratio, -1.f, 1.f, 0.0001f, -10000);
     triangle = make_transform();
     matrix4x4 mvp;
 
     main_input_state = make_input_state();
+    main_input_state->invert_y = true;
     input_window = window;
 
     while (!glfwWindowShouldClose(window)) {
@@ -159,8 +167,7 @@ int main(void) {
         transform_update_matrix(triangle);
         camera_update_matrix(game_camera);
 
-        set_matrix4x4_identity(&mvp);
-        camera_get_model_view(&mvp, game_camera);
+        camera_get_vp_matrix(&mvp, game_camera);
         matrix4x4_mul(&mvp, &mvp, triangle->matrix);
 
         float mvp_data[4][4];
@@ -173,10 +180,66 @@ int main(void) {
 
         update_input_state();
 
-        triangle->position = make_vector3(main_input_state->mouse_position.x, main_input_state->mouse_position.y, 0);
+        //triangle->position = make_vector3(main_input_state->mouse_position.x, main_input_state->mouse_position.y, 0);
+        vector3 m = make_vector3(main_input_state->mouse_position.x, main_input_state->mouse_position.y, 1.f);
+
+        vector3 fake_pos = make_vector3(1, 1, -10000);
+        vector2 screen_mouse = camera_world_to_screen_coord(game_camera, fake_pos);
+        vector3 screen_pos = make_vector3(screen_mouse.x, screen_mouse.y, 1.f);
+
+        vector3 new_world_pos = camera_screen_to_world_coord(game_camera, screen_pos);
+
+        triangle->position = screen_pos;
+
+        //glfwtime
     }
     free_input_state(main_input_state);
     glfwDestroyWindow(window);
     glfwTerminate();
     exit(EXIT_SUCCESS);
+}
+
+void compare(matrix4x4 matrix, mat4x4 mat);
+
+void test_matrix_revert() {
+    const float ratio = 640 / 480.f;
+    matrix4x4 projection;
+    matrix4x4_perspective(&projection, 90, ratio, 0.00001, -10000);
+
+    mat4x4 mat_proj;
+    mat4x4_perspective(mat_proj, to_rad(90), ratio, 0.00001, -10000);
+
+    MESSAGE("COMPARE PERSPECTIVE");
+    compare(projection, mat_proj);
+
+    mat4x4 mat_project_invertion;
+    mat4x4_invert(mat_project_invertion, mat_proj);
+
+    matrix4x4 invertion_result;
+    matrix4x4_invert(&invertion_result, &projection);
+
+    MESSAGE("COMPARE INVERTION");
+    compare(invertion_result, mat_project_invertion);
+}
+
+void compare(matrix4x4 matrix, mat4x4 mat) {
+    ASSERT_BREAK(matrix.xx == mat[0][0]);
+    ASSERT_BREAK(matrix.xy == mat[0][1]);
+    ASSERT_BREAK(matrix.xz == mat[0][2]);
+    ASSERT_BREAK(matrix.xw == mat[0][3]);
+
+    ASSERT_BREAK(matrix.yx == mat[1][0]);
+    ASSERT_BREAK(matrix.yy == mat[1][1]);
+    ASSERT_BREAK(matrix.yz == mat[1][2]);
+    ASSERT_BREAK(matrix.yw == mat[1][3]);
+
+    ASSERT_BREAK(matrix.zx == mat[2][0]);
+    ASSERT_BREAK(matrix.zy == mat[2][1]);
+    ASSERT_BREAK(matrix.zz == mat[2][2]);
+    ASSERT_BREAK(matrix.zw == mat[2][3]);
+
+    ASSERT_BREAK(matrix.wx == mat[3][0]);
+    ASSERT_BREAK(matrix.wy == mat[3][1]);
+    ASSERT_BREAK(matrix.wz == mat[3][2]);
+    ASSERT_BREAK(matrix.ww == mat[3][3]);
 }

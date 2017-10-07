@@ -57,6 +57,9 @@ void camera_update_matrix(camera* camera);
 void camera_set_perspective_matrix(perspective_camera* perspective, transform* trans, matrix4x4* projection, matrix4x4* view);
 void camera_set_ortho_matrix(ortho_camera* ortho, transform* trans, matrix4x4* projection, matrix4x4* view);
 
-void camera_get_model_view(matrix4x4* model_view, camera* camera);
+vector3 camera_screen_to_world_coord(camera* camera, vector3 screen_coord);
+vector2 camera_world_to_screen_coord(camera* camera, vector3 world_coord);
+
+void camera_get_vp_matrix(matrix4x4* result, camera* camera);
 
 #endif //CYNICAL_ENGINE_CYNICAL_GRAPHICS_H

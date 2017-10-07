@@ -4,6 +4,8 @@
 
 #include <cynical_math.h>
 #include <math.h>
+#include <stdio.h>
+#include <cynical_log.h>
 
 // ################ GENERAL #################################
 
@@ -131,6 +133,21 @@ float vector2_angle(vector2 a, vector2 b) {
     b = vector2_norm(b);
     float rad_angle = acos(vector2_dot(a, b));
     return to_degree(rad_angle);
+}
+
+bool vector2_compare(vector2 a, vector2 b) {
+    return a.x == b.x && a.y == b.y;
+}
+
+void vector2_string(char* result, vector2 vector) {
+    char fmt[] = "x: %f y: %f";
+    sprintf(result, fmt, vector.x, vector.y);
+}
+
+void vector2_print(vector2 vec) {
+    char buff[128];
+    vector2_string(buff, vec);
+    MESSAGE(buff);
 }
 
 // ################ VECTOR 3 ##########################
@@ -291,6 +308,21 @@ float vector3_angle(vector3 a, vector3 b) {
     return to_degree(rad_angle);
 }
 
+bool vector3_compare(vector3 a, vector3 b) {
+    return a.x == b.x && a.y == b.y && a.z == b.z;
+}
+
+void vector3_string(char* result, vector3 vector) {
+    char fmt[] = "x: %f y: %f z: %f";
+    sprintf(result, fmt, vector.x, vector.y, vector.z);
+}
+
+void vector3_print(vector3 vec) {
+    char buff[128];
+    vector3_string(buff, vec);
+    MESSAGE(buff);
+}
+
 // ################ VECTOR 4 ##########################
 
 void get_gl_vector4(float* result, vector4 vector) {
@@ -405,6 +437,21 @@ vector4 vector4_reflect(vector4 a, vector4 b) {
     return make_vector4(x, y, z, w);
 }
 
+bool vector4_compare(vector4 a, vector4 b) {
+    return a.x == b.x && a.y == b.y && a.z == b.z && a.w == b.w;
+}
+
+void vector4_string(char* result, vector4 vector) {
+    char fmt[] = "x: %f y: %f z: %f w: %f";
+    sprintf(result, fmt, vector.x, vector.y, vector.z, vector.w);
+}
+
+void vector4_print(vector4 vec) {
+    char buff[128];
+    vector4_string(buff, vec);
+    MESSAGE(buff);
+}
+
 // #################### MATRIX 4X4 #######################
 
 
@@ -472,6 +519,8 @@ void set_matrix4x4_identity(matrix4x4* matrix) {
     matrix->wy = 0;
     matrix->wz = 0;
     matrix->ww = 1;
+
+    normalize(10, 5, 20);
 }
 
 matrix4x4* make_matrix4x4() {
@@ -898,6 +947,7 @@ void matrix4x4_ortho(matrix4x4* result, float left, float right, float bottom, f
 }
 
 void matrix4x4_perspective(matrix4x4* result, float y_fov, float aspect, float near, float far) {
+    y_fov = to_rad(y_fov);
     float const a = 1.f / tan(y_fov / 2.f);
 
     result->xx = a / aspect;
@@ -952,6 +1002,59 @@ void matrix4x4_look_at(matrix4x4* result, vector3 eye, vector3 look_at_pos, vect
     result->ww = 1.f;
 
     matrix4x4_translate_in_place(result, vector3_negate(eye));
+}
+
+bool matrix4x4_compare(matrix4x4* a, matrix4x4* b) {
+    return
+            a->xx == b->xx &&
+            a->xy == b->xy &&
+            a->xz == b->xz &&
+            a->xw == b->xw &&
+            a->yx == b->yx &&
+            a->yy == b->yy &&
+            a->yz == b->yz &&
+            a->yw == b->yw &&
+            a->zx == b->zx &&
+            a->zy == b->zy &&
+            a->zz == b->zz &&
+            a->zw == b->zw &&
+            a->wx == b->wx &&
+            a->wy == b->wy &&
+            a->wz == b->wz &&
+            a->ww == b->ww;
+}
+
+void matrix4x4_string(char* result, matrix4x4* vector) {
+    char fmt[] =
+            "xx: %f xy: %f xz: %f xw: %f" "\n"
+            "yx: %f yy: %f yz: %f yw: %f" "\n"
+            "zx: %f zy: %f zz: %f zw: %f" "\n"
+            "wx: %f wy: %f wz: %f ww: %f" "\n";
+
+    sprintf(result,
+            fmt,
+            vector->xx,
+            vector->xy,
+            vector->xz,
+            vector->xw,
+            vector->yx,
+            vector->yy,
+            vector->yz,
+            vector->yw,
+            vector->zx,
+            vector->zy,
+            vector->zz,
+            vector->zw,
+            vector->wx,
+            vector->wy,
+            vector->wz,
+            vector->ww);
+}
+
+void matrix4x4_print(matrix4x4* matrix) {
+    char buff[512];
+    matrix4x4_string(buff, matrix);
+    MESSAGE(buff);
 }
 
 // ######################## QUATERNION ###########################################
@@ -1185,6 +1288,21 @@ quaternion quaternion_normalize(quaternion quat) {
     vector4 vec = make_vector4(quat.x, quat.y, quat.z, quat.w);
     vec = vector4_norm(vec);
     return make_quaternion(vec.x, vec.y, vec.z, vec.w);
+}
+
+bool quaternion_compare(quaternion a, quaternion b) {
+    return a.x == b.x && a.y == b.y && a.z == b.z && a.w && b.w;
+}
+
+void quaternion_string(char* result, quaternion quat) {
+    char fmt[] = "x: %f y: %f z: %f w: %f";
+    sprintf(result, fmt, quat.x, quat.y, quat.z, quat.w);
+}
+
+void quaternion_print(quaternion quat) {
+    char buff[256];
+    quaternion_string(buff, quat);
+    MESSAGE(buff);
 }
 
 // ########################## TRANSFORM ###############################

@@ -157,6 +157,12 @@ float vector2_dot(vector2 a, vector2 b);
 
 float vector2_angle(vector2 a, vector2 b);
 
+bool vector2_compare(vector2 a, vector2 b);
+
+void vector2_string(char* result, vector2 vector);
+
+void vector2_print(vector2 vec);
+
 // ################ VECTOR 3 ##########################
 
 void get_gl_vector3(float* result, vector3 vector);
@@ -213,6 +219,12 @@ float vector3_dot(vector3 a, vector3 b);
 
 float vector3_angle(vector3 a, vector3 b);
 
+bool vector3_compare(vector3 a, vector3 b);
+
+void vector3_string(char* result, vector3 vector);
+
+void vector3_print(vector3 vec);
+
 // ################ VECTOR 4 ##########################
 
 void get_gl_vector4(float* result, vector4 vector);
@@ -248,6 +260,12 @@ vector4 vector4_max(vector4 a, vector4 b);
 vector4 vector4_cross(vector4 a, vector4 b);
 
 vector4 vector4_reflect(vector4 a, vector4 b);
+
+bool vector4_compare(vector4 a, vector4 b);
+
+void vector4_string(char* result, vector4 vector);
+
+void vector4_print(vector4 vec);
 
 // #################### MATRIX 4X4 #######################
 
@@ -304,6 +322,12 @@ void matrix4x4_perspective(matrix4x4* result, float y_fov, float aspect, float n
 
 void matrix4x4_look_at(matrix4x4* result, vector3 eye, vector3 look_at_pos, vector3 up);
 
+bool matrix4x4_compare(matrix4x4* a, matrix4x4* b);
+
+void matrix4x4_string(char* result, matrix4x4* matrix);
+
+void matrix4x4_print(matrix4x4* matrix);
+
 // ######################## QUATERNION ###########################################
 
 quaternion make_quaternion(float x, float y, float z, float w);
@@ -337,6 +361,12 @@ quaternion quaternion_from_euler(vector3 euler);
 vector3 quaternion_to_euler(quaternion quat);
 
 quaternion quaternion_normalize(quaternion quat);
+
+bool quaternion_compare(quaternion a, quaternion b);
+
+void quaternion_string(char* result, quaternion quat);
+
+void quaternion_print(quaternion quat);
 
 // ########################## TRANSFORM ###############################
 

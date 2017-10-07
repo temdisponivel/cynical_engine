@@ -127,7 +127,38 @@ void camera_set_ortho_matrix(ortho_camera* ortho, transform* trans, matrix4x4* p
     matrix4x4_look_at(view, trans->position, trans->forward, trans->up);
 }
 
-void camera_get_model_view(matrix4x4* model_view, camera* camera) {
-    set_matrix4x4_identity(model_view);
-    matrix4x4_mul(model_view, camera->projection, camera->view);
+void camera_get_vp_matrix(matrix4x4* result, camera* camera) {
+    set_matrix4x4_identity(result);
+    matrix4x4_mul(result, result, camera->projection);
+    matrix4x4_mul(result, result, camera->view);
+}
+
+vector3 camera_screen_to_world_coord(camera* camera, vector3 screen_coord) {
+    // https://stackoverflow.com/questions/7692988/opengl-math-projecting-screen-space-to-world-space-coords
+
+    vector4 point = make_vector4(screen_coord.x, screen_coord.y, screen_coord.z, 1.f);
+
+    matrix4x4 vp;
+    camera_get_vp_matrix(&vp, camera);
+    matrix4x4_invert(&vp, &vp);
+
+    matrix4x4_print(&vp);
+
+    vector4 multiplied_vector;
+    matrix4x4_mul_vector4(&multiplied_vector, &vp, &point);
+    vector4 result_vector = vector4_scale(multiplied_vector, 1.f / multiplied_vector.w);
+
+    return make_vector3(result_vector.x, result_vector.y, result_vector.z);
+}
+
+vector2 camera_world_to_screen_coord(camera* camera, vector3 world_coord) {
+    vector4 point = make_vector4(world_coord.x, world_coord.y, world_coord.z, 1.f);
+    matrix4x4 vp;
+    camera_get_vp_matrix(&vp, camera);
+
+    vector4 multiplied_vector;
+    matrix4x4_mul_vector4(&multiplied_vector, &vp, &point);
+
+    vector4 result_vector = vector4_scale(multiplied_vector, 1.f / multiplied_vector.w);
+    return make_vector2(result_vector.x, result_vector.y);
 }
