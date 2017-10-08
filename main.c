@@ -9,6 +9,7 @@
 #include <cynical_time.h>
 #include <cynical_video.h>
 #include <cynical_engine.h>
+#include <cynical_collections.h>
 
 static const struct {
     float x, y;

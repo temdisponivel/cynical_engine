@@ -42,14 +42,14 @@ bool engine_init(const update_callback update, const draw_callback draw) {
     // TODO: read this from file or string or something
     init_video_options video_options;
     video_options.window_settings.window_position = make_vector2(100, 200);
-    video_options.window_settings.full_screen = true;
+    video_options.window_settings.full_screen = false;
     video_options.window_settings.use_vsync = true;
     video_options.window_settings.resolution = make_vector2(1024, 768);
     video_options.resizable = true;
-    video_options.hide_controls = true;
+    video_options.hide_controls = false;
     video_options.always_on_top = false;
     video_options.window_settings.title = "Cynical Engine Window!";
-    video_options.max_resolution = true;
+    video_options.max_resolution = false;
 
     if (!video_init(video_options)) {
         engine_error_code = ERROR_VIDEO_INIT;
