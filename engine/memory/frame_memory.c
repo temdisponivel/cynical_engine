@@ -4,7 +4,7 @@
 
 #include <cynical_memory.h>
 #include <malloc.h>
-#include <cynical_log.h>
+#include <cynical_debug.h>
 #include <mem.h>
 
 frame_memory* main_frame_memory;

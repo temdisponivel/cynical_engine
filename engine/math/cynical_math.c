@@ -5,7 +5,7 @@
 #include <cynical_math.h>
 #include <math.h>
 #include <stdio.h>
-#include <cynical_log.h>
+#include <cynical_debug.h>
 
 
 // ################ VECTOR 2 ##########################

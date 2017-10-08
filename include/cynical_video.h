@@ -2,10 +2,10 @@
 // Created by Morpheus on 07-Oct-17.
 //
 
-#ifndef CYNICAL_ENGINE_CYNICAL_WINDOW_H
-#define CYNICAL_ENGINE_CYNICAL_WINDOW_H
+#ifndef CYNICAL_ENGINE_CYNICAL_VIDEO_H
+#define CYNICAL_ENGINE_CYNICAL_VIDEO_H
 
-#include <glfw/glfw3.h>
+#include <cynical_includes.h>
 #include <math.h>
 #include "cynical_math.h"
 

@@ -2,8 +2,8 @@
 // Created by Morpheus on 06-Oct-17.
 //
 
-#ifndef CYNICAL_ENGINE_CYNICAL_GRAPHICS_H
-#define CYNICAL_ENGINE_CYNICAL_GRAPHICS_H
+#ifndef CYNICAL_ENGINE_CYNICAL_CAMERA_H
+#define CYNICAL_ENGINE_CYNICAL_CAMERA_H
 
 #include "cynical_math.h"
 
@@ -71,4 +71,4 @@ vector2 camera_world_to_screen_coord(camera* camera, vector3 world_coord);
 
 void camera_get_vp_matrix(matrix4x4* result, camera* camera);
 
-#endif //CYNICAL_ENGINE_CYNICAL_GRAPHICS_H
+#endif //CYNICAL_ENGINE_CYNICAL_CAMERA_H

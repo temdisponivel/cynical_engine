@@ -3,7 +3,7 @@
 //
 
 #include <mem.h>
-#include <cynical_log.h>
+#include <cynical_debug.h>
 #include <cynical_video.h>
 #include <cynical_engine.h>
 #include "cynical_input.h"

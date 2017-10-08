@@ -2,11 +2,11 @@
 // Created by Morpheus on 07-Oct-17.
 //
 
-#ifndef CYNICAL_ENGINE_MFE_INPUT_H
-#define CYNICAL_ENGINE_MFE_INPUT_H
+#ifndef CYNICAL_ENGINE_CYNICAL_INPUT_H
+#define CYNICAL_ENGINE_CYNICAL_INPUT_H
 
 #include <stddef.h>
-#include <glfw/glfw3.h>
+#include <cynical_includes.h>
 #include "cynical_math.h"
 
 #define KEY_SPACE              0
@@ -185,4 +185,4 @@ vector2 get_mouse_position();
 vector2 get_mouse_delta();
 vector2 get_mouse_scroll();
 
-#endif //CYNICAL_ENGINE_MFE_INPUT_H
+#endif //CYNICAL_ENGINE_CYNICAL_INPUT_H

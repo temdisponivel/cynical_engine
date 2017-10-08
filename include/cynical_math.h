@@ -6,7 +6,7 @@
 #define CYNICAL_ENGINE_CYNICAL_MATH_H
 
 #include <malloc.h>
-#include <cynical_log.h>
+#include <cynical_debug.h>
 
 #define false 0
 #define true 1

@@ -3,7 +3,6 @@
 //
 
 #include <malloc.h>
-#include <glfw/glfw3.h>
 #include <math.h>
 #include <time.h>
 #include <cynical_math.h>

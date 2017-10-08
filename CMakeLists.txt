@@ -36,7 +36,7 @@ include_directories(${DEP_ROOT_DIR}/include)
 include_directories(include)
 
 ################### BUILDING AND LINKING #############
-set(SOURCE_FILES main.c include/cynical_math.h include/cynical_camera.h engine/math/cynical_math.c engine/graphics/cynical_camera.c include/cynical_log.h include/cynical_input.h engine/input/cynical_input.c include/cynical_time.h engine/time/cynical_time.c include/cynical_video.h engine/video/cynical_video.c include/cynical_engine.h engine/cynical_engine.c include/cynical_collections.h include/cynical_memory.h engine/memory/frame_memory.c)
+set(SOURCE_FILES main.c include/cynical_math.h include/cynical_camera.h engine/math/cynical_math.c engine/graphics/cynical_camera.c include/cynical_debug.h include/cynical_input.h engine/input/cynical_input.c include/cynical_time.h engine/time/cynical_time.c include/cynical_video.h engine/video/cynical_video.c include/cynical_engine.h engine/cynical_engine.c include/cynical_collections.h include/cynical_memory.h engine/memory/frame_memory.c include/cynical_render.h include/cynical_graphics.h engine/graphics/cynical_graphics.c include/cynical_includes.h engine/graphics/cynical_render.c)
 add_executable(cynical_engine ${SOURCE_FILES})
 
 target_link_libraries(cynical_engine "${GL_LIBRARIES} ${GLFW_LIBRARIES} ${GLEW_LIBRARIES}")

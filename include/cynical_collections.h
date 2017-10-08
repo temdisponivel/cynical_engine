@@ -159,6 +159,4 @@ void quick_sort(list_##DATA* list, sort_comparer comparison) {\
     inner_quick_sort(list, 0, list->length, comparison);\
 }\
 
-CREATE_LIST(vector2)
-
 #endif //CYNICAL_ENGINE_CYNICAL_COLLECTIONS_H

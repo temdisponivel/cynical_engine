@@ -2,7 +2,6 @@
 // Created by Morpheus on 07-Oct-17.
 //
 
-#include <glfw/glfw3.h>
 #include <cynical_video.h>
 
 window* main_window;
@@ -92,6 +91,7 @@ bool video_init(init_video_options params) {
         glfwSetWindowPos(glfw_main_window, (int) roundf(win_pos.x), (int) roundf(win_pos.y));
     }
 
+    glClearColor(0, 0, 0, 0);
     glfwMakeContextCurrent(glfw_main_window);
     frame_buffer_updated(get_frame_buffer_size());
 

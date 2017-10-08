@@ -2,8 +2,7 @@
 // Created by Morpheus on 07-Oct-17.
 //
 
-#include <glew/glew.h>
-#include <glfw/glfw3.h>
+#include <cynical_includes.h>
 #include <cynical_video.h>
 #include <cynical_input.h>
 #include <cynical_time.h>
@@ -75,21 +74,20 @@ bool engine_init(const update_callback update, const draw_callback draw) {
 }
 
 void engine_release() {
-    video_release();
     input_release();
     time_release();
+    video_release();
     frame_memory_release();
     glfwTerminate();
 }
 
 void run_loop() {
     while (!main_engine_state.quit) {
-
         frame_memory_reset_allocator();
 
         if (main_engine_state.paused) {
 
-            // on pause, we do this stuff to prevent the window from frozing
+            // on pause, we do this stuff to prevent the window from freezing
             time_start_frame();
             glfwPollEvents();
             time_end_frame();
