@@ -10,6 +10,7 @@
 #include <cynical_video.h>
 #include <cynical_engine.h>
 #include <cynical_collections.h>
+#include <cynical_memory.h>
 
 static const struct {
     float x, y;
@@ -106,6 +107,18 @@ void setup() {
 
     triangle = make_transform();
     game_camera->transform->position.z = -5;
+
+    matrix4x4* memory = frame_memory_malloc(sizeof(matrix4x4));
+    matrix4x4* memory1 = frame_memory_malloc(sizeof(matrix4x4));
+    matrix4x4* memory2 = frame_memory_malloc(sizeof(matrix4x4));
+    matrix4x4* memory3 = frame_memory_malloc(sizeof(matrix4x4));
+
+    set_matrix4x4_identity(memory);
+
+    frame_memory_free(memory3);
+    frame_memory_free(memory2);
+    frame_memory_free(memory1);
+    frame_memory_free(memory);
 }
 
 void update() {

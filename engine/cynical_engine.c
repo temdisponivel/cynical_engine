@@ -8,6 +8,9 @@
 #include <cynical_input.h>
 #include <cynical_time.h>
 #include <cynical_engine.h>
+#include <cynical_memory.h>
+
+#define FRAME_MEMORY_TOTAL_SIZE ((1024 * 1024) * 5)
 
 int engine_error_code;
 int glfw_error_code;
@@ -38,6 +41,8 @@ bool engine_init(const update_callback update, const draw_callback draw) {
         engine_error_code = ERROR_GLFW_INIT;
         return false;
     }
+
+    frame_memory_init(FRAME_MEMORY_TOTAL_SIZE);
 
     // TODO: read this from file or string or something
     init_video_options video_options;
@@ -73,11 +78,14 @@ void engine_release() {
     video_release();
     input_release();
     time_release();
+    frame_memory_release();
     glfwTerminate();
 }
 
 void run_loop() {
     while (!main_engine_state.quit) {
+
+        frame_memory_reset_allocator();
 
         if (main_engine_state.paused) {
 
