@@ -24,6 +24,8 @@ static void error_callback(int error, const char* description) {
     error = ERROR_GLFW;
     glfw_error_code = error;
     engine_error_description = (char*) description;
+    ERROR(description);
+    exit(EXIT_FAILURE);
 }
 
 bool engine_init(const update_callback update, const draw_callback draw) {
@@ -101,7 +103,7 @@ void run_loop() {
 void run_one_frame() {
     time_start_frame();
 
-    glfwPollEvents();
+    //glfwPollEvents();
     update_input_state();
 
     main_update_callback();

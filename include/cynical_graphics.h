@@ -15,11 +15,8 @@ typedef struct shader_s {
 } shader;
 
 typedef enum {
-    VERTEX_ATTRIB_FLOAT,
-    VERTEX_ATTRIB_VECTOR2,
-    VERTEX_ATTRIB_VECTOR3,
-    VERTEX_ATTRIB_VECTOR4,
-    VERTEX_ATTRIB_MATRIX4X4,
+    VERTEX_ATTRIB_POS,
+    VERTEX_ATTRIB_COLOR,
 } VERTEX_ATTRIB_TYPE;
 
 typedef struct vertex_attribute_s {
@@ -61,6 +58,7 @@ typedef struct uniform_s {
     UNIFORM_TYPE type;
     char* name;
     uniform_data data;
+    bool rebuff;
 } uniform;
 
 typedef struct uniform_definition_s {
@@ -89,8 +87,11 @@ typedef struct mesh_s {
 
     GLuint vbo_handle;
     GLuint ibo_handle;
+    GLuint vao_handle;
 
     material* material;
+
+    bool rebuff;
 } mesh;
 
 mesh* make_mesh(float* vertices,
@@ -101,6 +102,8 @@ mesh* make_mesh(float* vertices,
                 size_t indices_count);
 
 void free_mesh(mesh* mesh);
+
+void buff_mesh_data(mesh* mesh);
 
 shader* make_shader(const char* vertex_source, const char* fragment_source);
 

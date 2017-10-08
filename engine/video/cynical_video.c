@@ -64,12 +64,6 @@ bool video_init(init_video_options params) {
         monitor_to_use = NULL;
     }
 
-    if (params.window_settings.use_vsync) {
-        glfwSwapInterval(1);
-    } else {
-        glfwSwapInterval(0);
-    }
-
     if (params.max_resolution) {
         width = vid_mode->width;
         height = vid_mode->height;
@@ -79,8 +73,11 @@ bool video_init(init_video_options params) {
     }
 
     GLFWwindow* glfw_main_window = glfwCreateWindow(width, height, params.window_settings.title, monitor_to_use, NULL);
+
     if (!glfw_main_window)
         return false;
+
+    glfwMakeContextCurrent(glfw_main_window);
 
     main_window = calloc(1, sizeof(window));
     main_window->glfw_main_window = glfw_main_window;
@@ -94,6 +91,12 @@ bool video_init(init_video_options params) {
     glClearColor(0, 0, 0, 0);
     glfwMakeContextCurrent(glfw_main_window);
     frame_buffer_updated(get_frame_buffer_size());
+
+    if (params.window_settings.use_vsync) {
+        glfwSwapInterval(1);
+    } else {
+        glfwSwapInterval(0);
+    }
 
     return true;
 }

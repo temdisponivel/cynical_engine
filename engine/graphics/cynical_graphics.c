@@ -5,12 +5,28 @@
 #include <cynical_graphics.h>
 #include <cynical_memory.h>
 
+#define VERTEX_POS_ATTRIBUTE_INDEX 0
+#define VERTEX_COLOR_ATTRIBUTE_INDEX 1
+
 mesh* make_mesh(float* vertices,
                 size_t vertice_count,
                 float* colors,
                 size_t color_count,
                 int* indices_data,
                 size_t indices_count) {
+
+    GLuint vao_handle;
+    glGenVertexArrays(1, &vao_handle);
+    ASSERT(vao_handle >= 0);
+    glBindVertexArray(vao_handle);
+
+    GLuint vertex_vbo;
+    glGenBuffers(1, &vertex_vbo);
+    ASSERT(vertex_vbo >= 0);
+
+    GLuint indices_vbo;
+    glGenBuffers(1, &indices_vbo);
+    ASSERT(indices_vbo >= 0);
 
     mesh* mesh = malloc(sizeof(mesh));
     mesh->vertices = vertices;
@@ -22,35 +38,44 @@ mesh* make_mesh(float* vertices,
     mesh->indices = indices_data;
     mesh->indices_count = indices_count;
 
-    GLuint vbo_handle;
-    glGenBuffers(1, &vbo_handle);
+    mesh->ibo_handle = indices_vbo;
+    mesh->vbo_handle = vertex_vbo;
+    mesh->vao_handle = vao_handle;
 
-    ASSERT(vbo_handle);
-
-    float* buffer = frame_memory_malloc(sizeof(float) * (vertice_count + color_count));
-    memcpy(buffer, vertices, vertice_count * sizeof(float));
-    memcpy(buffer + (vertice_count * sizeof(float)), colors, color_count * sizeof(float));
-
-    glBindBuffer(GL_VERTEX_ARRAY, vbo_handle);
-    glBufferData(vbo_handle, vertice_count + color_count, buffer, GL_STATIC_DRAW);
-
-    frame_memory_free(buffer);
-
-    GLuint ibo_handle;
-    glGenBuffers(1, &ibo_handle);
-
-    ASSERT(ibo_handle);
-
-    glBindBuffer(GL_INDEX_ARRAY, ibo_handle);
-    glBufferData(ibo_handle, indices_count, indices_data, GL_STATIC_DRAW);
-
-    mesh->vbo_handle = vbo_handle;
-    mesh->ibo_handle = ibo_handle;
+    buff_mesh_data(mesh);
 
     return mesh;
 }
 
+void buff_mesh_data(mesh* mesh) {
+    glBindVertexArray(mesh->vao_handle);
+
+    float* full_vertex_data = frame_memory_malloc(sizeof(float) * (mesh->vertices_count + mesh->colors_count));
+    memcpy(full_vertex_data, mesh->vertices, mesh->vertices_count * sizeof(float));
+    memcpy(full_vertex_data + (sizeof(float) * mesh->vertices_count), mesh->colors, mesh->colors_count * sizeof(float));
+
+    glBindBuffer(GL_VERTEX_ARRAY, mesh->vbo_handle);
+    glBufferData(GL_VERTEX_ARRAY, sizeof(full_vertex_data), full_vertex_data, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(VERTEX_POS_ATTRIBUTE_INDEX, 3, GL_FLOAT, false, 0, 0);
+    glEnableVertexAttribArray(VERTEX_POS_ATTRIBUTE_INDEX);
+
+    glVertexAttribPointer(VERTEX_COLOR_ATTRIBUTE_INDEX, 3, GL_FLOAT, false, 0,
+                          (void*) (sizeof(float) * mesh->vertices_count));
+    glEnableVertexAttribArray(VERTEX_COLOR_ATTRIBUTE_INDEX);
+
+    frame_memory_free(full_vertex_data);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ibo_handle);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(mesh->indices), mesh->indices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_VERTEX_ARRAY, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+}
+
 void free_mesh(mesh* mesh) {
+    glDeleteVertexArrays(1, &mesh->vao_handle);
     GLuint buffers[] = {mesh->vbo_handle, mesh->ibo_handle};
     glDeleteBuffers(2, buffers);
     free(mesh);
@@ -92,16 +117,10 @@ void free_shader(shader* shader) {
 
 size_t get_attribute_dimention(VERTEX_ATTRIB_TYPE type) {
     switch (type) {
-        case VERTEX_ATTRIB_FLOAT:
-            return 1;
-        case VERTEX_ATTRIB_VECTOR2:
-            return 2;
-        case VERTEX_ATTRIB_VECTOR3:
+        case VERTEX_ATTRIB_POS:
             return 3;
-        case VERTEX_ATTRIB_VECTOR4:
+        case VERTEX_ATTRIB_COLOR:
             return 4;
-        case VERTEX_ATTRIB_MATRIX4X4:
-            return 16;
     }
 }
 
@@ -117,6 +136,15 @@ vertex_attribute* make_vertex_attribute(shader* shader, vertex_attribute_defitio
 
     attribute->handle = glGetAttribLocation(shader->program_handle, definition.name);
     ASSERT(attribute->handle >= 0);
+
+    switch (attribute->handle) {
+        case VERTEX_ATTRIB_POS:
+            glBindAttribLocation(shader->program_handle, VERTEX_POS_ATTRIBUTE_INDEX, definition.name);
+            break;
+        case VERTEX_ATTRIB_COLOR:
+            glBindAttribLocation(shader->program_handle, VERTEX_COLOR_ATTRIBUTE_INDEX, definition.name);
+            break;
+    }
 
     return attribute;
 }
@@ -184,15 +212,8 @@ void free_material(material* material) {
 
 GLenum get_gl_attribute_type(VERTEX_ATTRIB_TYPE type) {
     switch (type) {
-        case VERTEX_ATTRIB_FLOAT:
-            return GL_FLOAT;
-        case VERTEX_ATTRIB_VECTOR2:
-            return GL_FLOAT;
-        case VERTEX_ATTRIB_VECTOR3:
-            return GL_FLOAT;
-        case VERTEX_ATTRIB_VECTOR4:
-            return GL_FLOAT;
-        case VERTEX_ATTRIB_MATRIX4X4:
+        case VERTEX_ATTRIB_COLOR:
+        case VERTEX_ATTRIB_POS:
             return GL_FLOAT;
     }
 

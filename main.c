@@ -77,14 +77,14 @@ void setup() {
     ASSERT(main_shader);
 
     vertex_attribute_defition pos_attribute;
-    pos_attribute.type = VERTEX_ATTRIB_VECTOR2;
+    pos_attribute.type = VERTEX_ATTRIB_POS;
     pos_attribute.name = "vPos";
     pos_attribute.padding = 0;
     pos_attribute.offset = 0;
     pos_attribute.normalized = false;
 
     vertex_attribute_defition col_attribute;
-    col_attribute.type = VERTEX_ATTRIB_VECTOR3;
+    col_attribute.type = VERTEX_ATTRIB_COLOR;
     col_attribute.name = "vCol";
     col_attribute.padding = 0;
     col_attribute.offset = 6;
@@ -135,8 +135,8 @@ void draw_scene() {
     camera_get_vp_matrix(&mvp, game_camera);
     matrix4x4_mul(&mvp, &mvp, triangle->matrix);
 
-    set_uniforms_data_on_gl(main_material->uniforms, main_material->uniform_size);
-    draw(main_material, main_mesh);
+    bind_material(main_material);
+    draw(main_mesh);
 
     end_draw();
 }
