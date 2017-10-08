@@ -149,40 +149,40 @@ typedef enum {
     KEY_STATE_UP,
     KEY_STATE_PRESSED,
     KEY_STATE_RELEASED,
-} KEY_STATE;
+} KEY_STATE_T;
 
-typedef unsigned short key_code;
+typedef unsigned short key_code_t;
 
 typedef struct input_state_s {
-    KEY_STATE states[TOTAL_KEYS];
+    KEY_STATE_T states[TOTAL_KEYS];
 
-    vector2 mouse_position;
-    vector2 last_mouse_position;
+    vector2_t mouse_position;
+    vector2_t last_mouse_position;
 
-    vector2 mouse_scroll;
-    vector2 last_mouse_scroll;
+    vector2_t mouse_scroll;
+    vector2_t last_mouse_scroll;
 
-    bool invert_y;
-} input_state;
+    bool_t invert_y;
+} input_state_t;
 
-input_state* make_input_state();
-void free_input_state(input_state* state);
+input_state_t* make_input_state();
+void free_input_state(input_state_t* state);
 
 void input_init();
 void input_release();
 
 void update_input_state();
 
-KEY_STATE get_key_state(key_code key);
+KEY_STATE_T get_key_state(key_code_t key);
 
-bool is_key_down(key_code key);
-bool is_key_up(key_code key);
+bool_t is_key_down(key_code_t key);
+bool_t is_key_up(key_code_t key);
 
-bool is_key_pressed(key_code key);
-bool is_key_released(key_code key);
+bool_t is_key_pressed(key_code_t key);
+bool_t is_key_released(key_code_t key);
 
-vector2 get_mouse_position();
-vector2 get_mouse_delta();
-vector2 get_mouse_scroll();
+vector2_t get_mouse_position();
+vector2_t get_mouse_delta();
+vector2_t get_mouse_scroll();
 
 #endif //CYNICAL_ENGINE_CYNICAL_INPUT_H

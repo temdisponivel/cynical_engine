@@ -12,7 +12,7 @@ typedef struct frame_memory_s {
     void* current;
     size_t total_size;
     size_t used_size;
-} frame_memory;
+} frame_memory_t;
 
 void frame_memory_init(size_t total_size);
 void frame_memory_release();

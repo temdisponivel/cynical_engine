@@ -8,7 +8,7 @@
 #include <cynical_engine.h>
 #include "cynical_input.h"
 
-input_state* main_input_state;
+input_state_t* main_input_state;
 
 void scroll_callback(GLFWwindow* window, double x_offset, double y_offset);
 
@@ -18,15 +18,15 @@ void window_resized_callback(GLFWwindow* window, int width, int height);
 
 void window_position_changed_callback(GLFWwindow* window, int x, int y);
 
-input_state* make_input_state() {
-    input_state* state = malloc(sizeof(input_state));
+input_state_t* make_input_state() {
+    input_state_t* state = malloc(sizeof(input_state_t));
     for (int i = 0; i < TOTAL_KEYS; ++i) {
         state->states[i] = KEY_STATE_RELEASED;
     }
     return state;
 }
 
-void free_input_state(input_state* state) {
+void free_input_state(input_state_t* state) {
     free(state);
 }
 
@@ -72,8 +72,8 @@ void update_key_and_mouse() {
 }\
 
     int current;
-    KEY_STATE previous;
-    KEY_STATE updated;
+    KEY_STATE_T previous;
+    KEY_STATE_T updated;
 
     GLFWwindow* glfw_main_window = main_window->glfw_main_window;
 
@@ -228,38 +228,38 @@ void update_input_state() {
     }
 }
 
-KEY_STATE get_key_state(key_code key) {
+KEY_STATE_T get_key_state(key_code_t key) {
     if (key >= TOTAL_KEYS)
         key = TOTAL_KEYS - 1;
 
     return main_input_state->states[key];
 }
 
-bool is_key_down(key_code key) {
+bool_t is_key_down(key_code_t key) {
     return get_key_state(key) == KEY_STATE_DOWN;
 }
 
-bool is_key_up(key_code key) {
+bool_t is_key_up(key_code_t key) {
     return get_key_state(key) == KEY_STATE_UP;
 }
 
-bool is_key_pressed(key_code key) {
+bool_t is_key_pressed(key_code_t key) {
     return get_key_state(key) == KEY_STATE_PRESSED;
 }
 
-bool is_key_released(key_code key) {
+bool_t is_key_released(key_code_t key) {
     return get_key_state(key) == KEY_STATE_RELEASED;
 }
 
-vector2 get_mouse_position() {
+vector2_t get_mouse_position() {
     return main_input_state->mouse_position;
 }
 
-vector2 get_mouse_delta() {
+vector2_t get_mouse_delta() {
     return vector2_sub(main_input_state->mouse_position, main_input_state->last_mouse_position);
 }
 
-vector2 get_mouse_scroll() {
+vector2_t get_mouse_scroll() {
     return vector2_sub(main_input_state->mouse_scroll, main_input_state->last_mouse_scroll);
 }
 

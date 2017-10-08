@@ -17,15 +17,15 @@ char* engine_error_description;
 #define ERROR_GLFW 4
 
 typedef struct engine_state_s {
-    bool paused;
-    bool quit;
-} engine_state;
+    bool_t paused;
+    bool_t quit;
+} engine_state_t;
 
-typedef void (* update_callback)();
+typedef void (* update_callback_t)();
 
-typedef void (* draw_callback)();
+typedef void (* draw_callback_t)();
 
-bool engine_init(update_callback update, draw_callback draw);
+bool_t engine_init(update_callback_t update, draw_callback_t draw);
 
 void engine_release();
 
@@ -39,7 +39,7 @@ void unpause();
 
 void run_one_frame();
 
-engine_state get_engine_state();
+engine_state_t get_engine_state();
 
 void quit();
 

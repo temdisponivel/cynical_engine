@@ -4,11 +4,11 @@
 
 #include <cynical_video.h>
 
-window* main_window;
+window_t* main_window;
 
-vector2 get_frame_buffer_size();
+vector2_t get_frame_buffer_size();
 
-bool video_init(init_video_options params) {
+bool_t video_init(init_video_options_t params) {
     GLFWmonitor* monitor = glfwGetPrimaryMonitor();
     const GLFWvidmode* vid_mode = glfwGetVideoMode(monitor);
 
@@ -79,12 +79,12 @@ bool video_init(init_video_options params) {
 
     glfwMakeContextCurrent(glfw_main_window);
 
-    main_window = calloc(1, sizeof(window));
+    main_window = calloc(1, sizeof(window_t));
     main_window->glfw_main_window = glfw_main_window;
     main_window->settings = params.window_settings;
 
     if (!params.window_settings.full_screen) {
-        vector2 win_pos = params.window_settings.window_position;
+        vector2_t win_pos = params.window_settings.window_position;
         glfwSetWindowPos(glfw_main_window, (int) roundf(win_pos.x), (int) roundf(win_pos.y));
     }
 
@@ -106,7 +106,7 @@ void video_release() {
     free(main_window);
 }
 
-void set_window_settings(window_settings opt) {
+void set_window_settings(window_settings_t opt) {
     main_window->settings = opt;
 
     const GLFWvidmode* vid_mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
@@ -140,7 +140,7 @@ void set_window_settings(window_settings opt) {
             glfwSetWindowSize(main_window->glfw_main_window, width, height);
         }
 
-        vector2 win_pos = opt.window_position;
+        vector2_t win_pos = opt.window_position;
         glfwSetWindowPos(main_window->glfw_main_window, (int) roundf(win_pos.x), (int) roundf(win_pos.y));
     }
 
@@ -153,32 +153,32 @@ void set_window_settings(window_settings opt) {
     glfwSetWindowTitle(main_window->glfw_main_window, opt.title);
 }
 
-vector2 get_frame_buffer_size() {
+vector2_t get_frame_buffer_size() {
     int buffer_width;
     int buffer_height;
     glfwGetFramebufferSize(main_window->glfw_main_window, &buffer_width, &buffer_height);
     return make_vector2(buffer_width, buffer_height);
 }
 
-void frame_buffer_updated(vector2 new_size) {
+void frame_buffer_updated(vector2_t new_size) {
     main_window->frame_buffer_size = new_size;
     glViewport(0, 0, (int) main_window->frame_buffer_size.x, (int) main_window->frame_buffer_size.y);
 }
 
-void set_window_size(vector2 new_size) {
+void set_window_size(vector2_t new_size) {
     glfwSetWindowSize(main_window->glfw_main_window, (int) new_size.x, (int) new_size.y);
     window_resized(new_size);
 }
 
-void window_resized(vector2 new_size) {
+void window_resized(vector2_t new_size) {
     main_window->settings.resolution = new_size;
 }
 
-void set_window_position(vector2 pos) {
+void set_window_position(vector2_t pos) {
     glfwSetWindowPos(main_window->glfw_main_window, (int) pos.x, (int) pos.y);
     window_moved(pos);
 }
 
-void window_moved(vector2 new_pos) {
+void window_moved(vector2_t new_pos) {
     main_window->settings.window_position = new_pos;
 }

@@ -19,11 +19,11 @@ typedef struct time_state_s {
 
     int current_refresh_rate;
     int frame_cap;
-} time_state;
+} time_state_t;
 
-time_state* make_time_state();
+time_state_t* make_time_state();
 
-void free_time_state(time_state* state);
+void free_time_state(time_state_t* state);
 
 void time_init();
 

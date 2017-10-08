@@ -8,14 +8,14 @@
 #include <cynical_math.h>
 #include "cynical_time.h"
 
-time_state* main_time_state;
+time_state_t* main_time_state;
 
-time_state* make_time_state() {
-    time_state* result = calloc(1, sizeof(time_state));
+time_state_t* make_time_state() {
+    time_state_t* result = calloc(1, sizeof(time_state_t));
     return result;
 }
 
-void free_time_state(time_state* state) {
+void free_time_state(time_state_t* state) {
     free(state);
 }
 

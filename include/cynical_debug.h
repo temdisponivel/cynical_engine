@@ -22,8 +22,8 @@
 #define INT_TO_STR_2(X) #X
 #define INT_TO_STR(X) INT_TO_STR_2(X)
 
-#define LOG_HEADER(COLOR, TYPE) COLOR "["TYPE"]: "
-#define LOG_FOOTER "\n-> "__FILE__":"INT_TO_STR(__LINE__)"\n\n"; NORMAL_COLOR
+#define LOG_HEADER(COLOR,TYPE) COLOR "[" TYPE "]: "
+#define LOG_FOOTER "\n-> " __FILE__ ":" INT_TO_STR(__LINE__) "\n\n"; NORMAL_COLOR
 
 #define LOG_MESSAGE 0
 #define LOG_WARNING 1
@@ -34,9 +34,7 @@
 #define MESSAGE(MSG) {\
     char header[] = LOG_HEADER(NORMAL_COLOR,"MESSAGE");\
     char footer[] = LOG_FOOTER;\
-    char message[sizeof(header) + sizeof((MSG)) + sizeof(footer)];\
-    sprintf(message, "%s%s%s",header, (MSG), footer);\
-    printf(message);\
+    printf("%s%s%s",header, MSG, footer);\
 }
 
 #define WARNING(WARN_MESSAGE) {\
@@ -52,7 +50,7 @@
     char footer[] = LOG_FOOTER;\
     char message[sizeof(header) + sizeof((ERR_MESSAGE)) + sizeof(footer)];\
     sprintf(message, "%s%s%s",header, (ERR_MESSAGE), footer);\
-    printf(message);\
+    fprintf(stderr,message);\
 }
 
 #define ASSERT(RESULT) {\
@@ -75,7 +73,7 @@
     }\
 }
 
-#define BREAK() __asm__("int $3");
+#define BREAK() __asm__("int $3")
 
 #define LOG(MSG, TYPE) {\
     switch (TYPE) {\
@@ -152,8 +150,8 @@ if (ERROR != GL_NO_ERROR){\
     glGetShaderiv(SHADER, GL_COMPILE_STATUS, &compile_status);\
     if (compile_status != GL_TRUE) {\
         PRINT_SHADER_ERROR((SHADER));\
-        MESSAGE("Unable to compile shader"#SHADER"!\nShader source:\n");\
-        MESSAGE(SOURCE_CODE);\
+        MESSAGE("Unable to compile shader!\nShader source:\n");\
+        MESSAGE(#SOURCE_CODE);\
     }\
 }\
 
@@ -167,8 +165,12 @@ if (ERROR != GL_NO_ERROR){\
     }\
 }\
 
-#define CHECK_PROGRAM_LINK_STATUS
-
+#define CHECK_GL_ERROR() {\
+    GLenum error = glGetError();\
+    if (error != GL_NO_ERROR) {\
+        PRINT_GL_ERROR("Gl error: ", error);\
+    }\
+}\
 
 #else
 
@@ -185,6 +187,7 @@ if (ERROR != GL_NO_ERROR){\
 #define PRINT_PROGRAM_ERROR(PROGRAM)
 #define CHECK_SHADER_COMPILE_STATUS(SHADER,SOURCE_CODE)
 #define CHECK_SHADER_LINK_STATUS(PROG_HANDLE)
+#define CHECK_GL_ERROR()
 
 #endif
 

@@ -7,10 +7,10 @@
 #include <cynical_debug.h>
 #include <mem.h>
 
-frame_memory* main_frame_memory;
+frame_memory_t* main_frame_memory;
 
 void frame_memory_init(size_t total_size) {
-    frame_memory* memory = malloc(sizeof(frame_memory));
+    frame_memory_t* memory = malloc(sizeof(frame_memory_t));
     void* head = calloc(total_size, sizeof(char));;
     memory->head = head;
     memory->current = memory->head;

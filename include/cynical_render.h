@@ -9,9 +9,9 @@
 
 void start_draw();
 
-void bind_material(material* material);
+void bind_material(material_t* material);
 
-void draw(mesh* mesh);
+void draw(mesh_t* mesh);
 
 void end_draw();
 

@@ -15,10 +15,10 @@ int engine_error_code;
 int glfw_error_code;
 char* engine_error_description;
 
-engine_state main_engine_state;
+engine_state_t main_engine_state;
 
-update_callback main_update_callback;
-draw_callback main_draw_callback;
+update_callback_t main_update_callback;
+draw_callback_t main_draw_callback;
 
 static void error_callback(int error, const char* description) {
     error = ERROR_GLFW;
@@ -28,7 +28,7 @@ static void error_callback(int error, const char* description) {
     exit(EXIT_FAILURE);
 }
 
-bool engine_init(const update_callback update, const draw_callback draw) {
+bool_t engine_init(const update_callback_t update, const draw_callback_t draw) {
 
     ASSERT(update);
     ASSERT(draw);
@@ -46,7 +46,7 @@ bool engine_init(const update_callback update, const draw_callback draw) {
     frame_memory_init(FRAME_MEMORY_TOTAL_SIZE);
 
     // TODO: read this from file or string or something
-    init_video_options video_options;
+    init_video_options_t video_options;
     video_options.window_settings.window_position = make_vector2(100, 200);
     video_options.window_settings.full_screen = false;
     video_options.window_settings.use_vsync = true;
@@ -103,7 +103,7 @@ void run_loop() {
 void run_one_frame() {
     time_start_frame();
 
-    //glfwPollEvents();
+    glfwPollEvents();
     update_input_state();
 
     main_update_callback();
@@ -128,7 +128,7 @@ void unpause() {
     main_engine_state.paused = true;
 }
 
-engine_state get_engine_state() {
+engine_state_t get_engine_state() {
     return main_engine_state;
 }
 
