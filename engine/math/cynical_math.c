@@ -199,7 +199,7 @@ vector3_t vector3_down() {
 }
 
 vector3_t vector3_forward() {
-    return make_vector3(0, 0, 1);
+    return make_vector3(0, 0, -1);
 }
 
 vector3_t vector3_backward() {

@@ -6,6 +6,7 @@
 #include <cynical_memory.h>
 #include <cynical_graphics.h>
 #include <cynical_render.h>
+#include <cynical_input.h>
 
 
 vertex_t vertices[] = {
@@ -44,6 +45,8 @@ void draw_scene();
 
 void update();
 
+void handle_input();
+
 transform_t* triangle;
 camera_t* game_camera;
 
@@ -77,7 +80,7 @@ void setup() {
 
     vector2_t frame_buffer = main_window->frame_buffer_size;
     float ratio = frame_buffer.x / frame_buffer.y;
-    game_camera = make_ortho_camera(-ratio, ratio, -1.f, 1.f, 0.0001f, -10000);
+    game_camera = make_ortho_camera(-ratio, ratio, -1.f, 1.f, 0.0001f, -100);
 
     main_shader = make_shader(vertex_shader_text, fragment_shader_text);
     ASSERT(main_shader);
@@ -118,7 +121,7 @@ void setup() {
 }
 
 void update() {
-    //handle_input();
+    handle_input();
 }
 
 void draw_scene() {
@@ -127,4 +130,32 @@ void draw_scene() {
     transform_update_matrix(triangle);
     render_draw(triangle, main_mesh);
     render_end_draw();
+}
+
+void handle_input() {
+    if (is_key_down(KEY_RIGHT)) {
+        triangle->position = vector3_add(triangle->position, vector3_right());
+
+        VECTOR3_PRINT(triangle->position);
+    }
+
+    if (is_key_down(KEY_LEFT)) {
+        triangle->position = vector3_add(triangle->position, vector3_left());
+
+        VECTOR3_PRINT(triangle->position);
+    }
+
+    if (is_key_down(KEY_UP)) {
+        triangle->position = vector3_add(triangle->position, vector3_up());
+
+        VECTOR3_PRINT(triangle->position);
+    }
+
+    if (is_key_down(KEY_DOWN)) {
+        triangle->position = vector3_add(triangle->position, vector3_down());
+
+        VECTOR3_PRINT(triangle->position);
+    }
+
+    triangle->position = vector3_add(triangle->position, make_vector3(0, 0, get_mouse_scroll().y));
 }
