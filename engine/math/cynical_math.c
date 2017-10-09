@@ -485,27 +485,25 @@ void set_matrix4x4_from_gl(matrix4x4_t* result, const float data[4][4]) {
 }
 
 void set_matrix4x4_identity(matrix4x4_t* matrix) {
-    matrix->xx = 1;
-    matrix->xy = 0;
-    matrix->xz = 0;
-    matrix->xw = 0;
+    matrix->xx = 1.f;
+    matrix->xy = 0.f;
+    matrix->xz = 0.f;
+    matrix->xw = 0.f;
 
-    matrix->yx = 0;
-    matrix->yy = 1;
-    matrix->yz = 0;
-    matrix->yw = 0;
+    matrix->yx = 0.f;
+    matrix->yy = 1.f;
+    matrix->yz = 0.f;
+    matrix->yw = 0.f;
 
-    matrix->zx = 0;
-    matrix->zy = 0;
-    matrix->zz = 1;
-    matrix->zw = 0;
+    matrix->zx = 0.f;
+    matrix->zy = 0.f;
+    matrix->zz = 1.f;
+    matrix->zw = 0.f;
 
-    matrix->wx = 0;
-    matrix->wy = 0;
-    matrix->wz = 0;
-    matrix->ww = 1;
-
-    normalize(10, 5, 20);
+    matrix->wx = 0.f;
+    matrix->wy = 0.f;
+    matrix->wz = 0.f;
+    matrix->ww = 1.f;
 }
 
 matrix4x4_t* make_matrix4x4() {
@@ -751,20 +749,23 @@ void matrix4x4_translate_in_place(matrix4x4_t* result, vector3_t trans) {
     result->ww += vector4_inner_mul(row, translation);
 }
 
-void matrix4x4_mul_vector4(vector4_t* result, const matrix4x4_t* matrix, const vector4_t* multiplier) {
-    result->x = result->y = result->z = result->w = 0;
+vector4_t matrix4x4_mul_vector4(const matrix4x4_t* matrix, vector4_t multiplier) {
+    vector4_t result;
+    result.x = result.y = result.z = result.w = 0;
 
-    result->x = (matrix->xx * multiplier->x) + (matrix->yx * multiplier->y) + (matrix->zx * multiplier->z) +
-                (matrix->wx * multiplier->w);
+    result.x = (matrix->xx * multiplier.x) + (matrix->yx * multiplier.y) + (matrix->zx * multiplier.z) +
+               (matrix->wx * multiplier.w);
 
-    result->y = (matrix->xy * multiplier->x) + (matrix->yy * multiplier->y) + (matrix->zy * multiplier->z) +
-                (matrix->wy * multiplier->w);
+    result.y = (matrix->xy * multiplier.x) + (matrix->yy * multiplier.y) + (matrix->zy * multiplier.z) +
+               (matrix->wy * multiplier.w);
 
-    result->z = (matrix->xz * multiplier->x) + (matrix->yz * multiplier->y) + (matrix->zz * multiplier->z) +
-                (matrix->wz * multiplier->w);
+    result.z = (matrix->xz * multiplier.x) + (matrix->yz * multiplier.y) + (matrix->zz * multiplier.z) +
+               (matrix->wz * multiplier.w);
 
-    result->w = (matrix->xw * multiplier->x) + (matrix->yw * multiplier->y) + (matrix->zw * multiplier->z) +
-                (matrix->ww * multiplier->w);
+    result.w = (matrix->xw * multiplier.x) + (matrix->yw * multiplier.y) + (matrix->zw * multiplier.z) +
+               (matrix->ww * multiplier.w);
+
+    return result;
 }
 
 void matrix4x4_translate(matrix4x4_t* matrix, vector3_t translation) {
@@ -933,7 +934,7 @@ void matrix4x4_ortho(matrix4x4_t* result, float left, float right, float bottom,
 
 void matrix4x4_perspective(matrix4x4_t* result, float y_fov, float aspect, float near, float far) {
     y_fov = to_rad(y_fov);
-    float const a = 1.f / tan(y_fov / 2.f);
+    const float a = 1.f / tan(y_fov / 2.f);
 
     result->xx = a / aspect;
     result->xy = 0.f;
@@ -1012,9 +1013,9 @@ bool_t matrix4x4_compare(const matrix4x4_t* a, const matrix4x4_t* b) {
 void matrix4x4_string(char* result, const matrix4x4_t* vector) {
     char fmt[] =
             "xx: %f xy: %f xz: %f xw: %f" "\n"
-            "yx: %f yy: %f yz: %f yw: %f" "\n"
-            "zx: %f zy: %f zz: %f zw: %f" "\n"
-            "wx: %f wy: %f wz: %f ww: %f" "\n";
+                    "yx: %f yy: %f yz: %f yw: %f" "\n"
+                    "zx: %f zy: %f zz: %f zw: %f" "\n"
+                    "wx: %f wy: %f wz: %f ww: %f" "\n";
 
     sprintf(result,
             fmt,

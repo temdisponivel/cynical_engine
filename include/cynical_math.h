@@ -298,7 +298,7 @@ void matrix4x4_mul(matrix4x4_t* result, const matrix4x4_t* left, const matrix4x4
 
 void matrix4x4_translate_in_place(matrix4x4_t* result, vector3_t trans);
 
-void matrix4x4_mul_vector4(vector4_t* result, const matrix4x4_t* matrix, const vector4_t* multiplier);
+vector4_t matrix4x4_mul_vector4(const matrix4x4_t* matrix, vector4_t multiplier);
 
 void matrix4x4_translate(matrix4x4_t* matrix, vector3_t translation);
 

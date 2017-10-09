@@ -7,7 +7,9 @@
 #include <cynical_graphics.h>
 #include <cynical_render.h>
 #include <cynical_input.h>
+#include <cynical_time.h>
 
+#include "dependencies/include/linmath/linmath.h"
 
 vertex_t vertices[] = {
         // POSITION         // COLOR
@@ -56,7 +58,6 @@ material_t* main_material;
 mesh_t* main_mesh;
 
 int main(void) {
-
     if (!engine_init(&update, &draw_scene)) {
         ERROR(engine_error_description);
         exit(EXIT_FAILURE);
@@ -80,10 +81,8 @@ void setup() {
 
     vector2_t frame_buffer = main_window->frame_buffer_size;
     float ratio = frame_buffer.x / frame_buffer.y;
-    //game_camera = make_ortho_camera(-ratio, ratio, -1.f, 1.f, 0.0001f, -100);
-    game_camera = make_perspective_camera(90, ratio, 0.0001f, -1000);
-
-    game_camera->transform->position.z = 1;
+    game_camera = make_ortho_camera(-ratio, ratio, -1.f, 1.f, 0.0001f, -100);
+    //game_camera = make_perspective_camera(90, ratio, 0.0001f, -100);
 
     main_shader = make_shader(vertex_shader_text, fragment_shader_text);
     ASSERT(main_shader);
@@ -135,6 +134,8 @@ void draw_scene() {
     render_end_draw();
 }
 
+float value;
+
 void handle_input() {
     if (is_key_down(KEY_RIGHT)) {
         triangle->position = vector3_add(triangle->position, vector3_right());
@@ -177,12 +178,24 @@ void handle_input() {
     }
 
     if (is_key_pressed(KEY_KP_ADD)) {
-        triangle->scale = vector3_scale(triangle->scale, 2);
+        value += .001f;
     }
 
     if (is_key_pressed(KEY_KP_SUBTRACT)) {
-        triangle->scale = vector3_scale(triangle->scale, .5f);
+        value -= .001f;
     }
 
-    triangle->position = vector3_add(triangle->position, make_vector3(0, 0, get_mouse_scroll().y));
+    if (is_key_down(KEY_TAB)) {
+        vector2_t frame_buffer = main_window->frame_buffer_size;
+        float ratio = frame_buffer.x / frame_buffer.y;
+        if (game_camera->type == CAMERA_ORTHO) {
+            game_camera = make_perspective_camera(45, ratio, 0.01f, -1000);
+        } else {
+            game_camera = make_ortho_camera(-ratio, ratio, -1.f, 1.f, 0.01f, -1000);
+        }
+    }
+
+    vector3_t mouse_pos = make_vector3_vec2(get_mouse_view_port_position(), value);
+    vector3_t world_pos = camera_screen_to_world_coord(game_camera, mouse_pos);
+    triangle->position = world_pos;
 }

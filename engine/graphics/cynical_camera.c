@@ -111,7 +111,11 @@ void camera_set_perspective_matrix(
     matrix4x4_look_at(view, camera_trans->position, camera_trans->forward, camera_trans->up);
 }
 
-void camera_set_ortho_matrix(ortho_camera_t* ortho, transform_t* camera_trans, matrix4x4_t* projection, matrix4x4_t* view) {
+void camera_set_ortho_matrix(
+        ortho_camera_t* ortho,
+        transform_t* camera_trans,
+        matrix4x4_t* projection,
+        matrix4x4_t* view) {
     set_matrix4x4_identity(projection);
     matrix4x4_ortho(
             projection,
@@ -129,34 +133,32 @@ void camera_set_ortho_matrix(ortho_camera_t* ortho, transform_t* camera_trans, m
 
 void camera_get_vp_matrix(matrix4x4_t* result, camera_t* camera) {
     set_matrix4x4_identity(result);
-    matrix4x4_mul(result, result, camera->projection);
-    matrix4x4_mul(result, result, camera->view);
+    matrix4x4_mul(result, camera->projection, camera->view);
 }
 
 vector3_t camera_screen_to_world_coord(camera_t* camera, vector3_t screen_coord) {
-    // https://stackoverflow.com/questions/7692988/opengl-math-projecting-screen-space-to-world-space-coords
-
-    vector4_t point = make_vector4(screen_coord.x, screen_coord.y, screen_coord.z, 1.f);
 
     matrix4x4_t vp;
     camera_get_vp_matrix(&vp, camera);
     matrix4x4_invert(&vp, &vp);
 
-    vector4_t multiplied_vector;
-    matrix4x4_mul_vector4(&multiplied_vector, &vp, &point);
-    vector4_t result_vector = vector4_scale(multiplied_vector, 1.f / multiplied_vector.w);
+    vector4_t point = make_vector4(screen_coord.x, screen_coord.y, screen_coord.z, 1.0f);
+    vector4_t unprojected = matrix4x4_mul_vector4(&vp, point);
 
-    return make_vector3(result_vector.x, result_vector.y, result_vector.z);
+    vector3_t result = make_vector3(unprojected.x, unprojected.y, unprojected.z);
+    result = vector3_scale(result, 1.0f / unprojected.w);
+    return result;
 }
 
 vector2_t camera_world_to_screen_coord(camera_t* camera, vector3_t world_coord) {
-    vector4_t point = make_vector4(world_coord.x, world_coord.y, world_coord.z, 1.f);
+
     matrix4x4_t vp;
     camera_get_vp_matrix(&vp, camera);
 
-    vector4_t multiplied_vector;
-    matrix4x4_mul_vector4(&multiplied_vector, &vp, &point);
+    vector4_t point = make_vector4(world_coord.x, world_coord.y, world_coord.z, 1.0f);
+    vector4_t projected = matrix4x4_mul_vector4(&vp, point);
 
-    vector4_t result_vector = vector4_scale(multiplied_vector, 1.f / multiplied_vector.w);
-    return make_vector2(result_vector.x, result_vector.y);
+    vector2_t result = make_vector2(projected.x, projected.y);
+    result = vector2_scale(result, 1.0f / projected.w);
+    return result;
 }

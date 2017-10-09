@@ -159,6 +159,8 @@ typedef struct input_state_s {
     vector2_t mouse_position;
     vector2_t last_mouse_position;
 
+    vector2_t mouse_position_view_port;
+
     vector2_t mouse_scroll;
     vector2_t last_mouse_scroll;
 
@@ -182,6 +184,7 @@ bool_t is_key_pressed(key_code_t key);
 bool_t is_key_released(key_code_t key);
 
 vector2_t get_mouse_position();
+vector2_t get_mouse_view_port_position();
 vector2_t get_mouse_delta();
 vector2_t get_mouse_scroll();
 

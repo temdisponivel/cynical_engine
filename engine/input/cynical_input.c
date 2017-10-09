@@ -23,6 +23,7 @@ input_state_t* make_input_state() {
     for (int i = 0; i < TOTAL_KEYS; ++i) {
         state->states[i] = KEY_STATE_RELEASED;
     }
+    state->invert_y = true;
     return state;
 }
 
@@ -218,6 +219,13 @@ void update_key_and_mouse() {
     main_input_state->mouse_position = make_vector2((float) x, (float) y);
     if (main_input_state->invert_y)
         main_input_state->mouse_position.y = main_input_state->mouse_position.y * -1.f;
+
+    float x_norm = normalize((float) x, 0, main_window->frame_buffer_size.x);
+    float y_norm = normalize((float) y, 0, main_window->frame_buffer_size.y);
+
+    main_input_state->mouse_position_view_port = make_vector2((x_norm * 2.f) - 1.f, (y_norm * 2.f) - 1.f);
+    if (main_input_state->invert_y)
+        main_input_state->mouse_position_view_port.y = main_input_state->mouse_position_view_port.y * -1.f;
 }
 
 void update_input_state() {
@@ -253,6 +261,10 @@ bool_t is_key_released(key_code_t key) {
 
 vector2_t get_mouse_position() {
     return main_input_state->mouse_position;
+}
+
+vector2_t get_mouse_view_port_position() {
+    return main_input_state->mouse_position_view_port;
 }
 
 vector2_t get_mouse_delta() {
