@@ -8,6 +8,7 @@
 #include <cynical_time.h>
 #include <cynical_engine.h>
 #include <cynical_memory.h>
+#include <cynical_render.h>
 
 #define FRAME_MEMORY_TOTAL_SIZE ((1024 * 1024) * 5)
 
@@ -69,6 +70,7 @@ bool_t engine_init(const update_callback_t update, const draw_callback_t draw) {
         return false;
     }
 
+    render_init();
     input_init();
     time_init();
 
@@ -78,6 +80,7 @@ bool_t engine_init(const update_callback_t update, const draw_callback_t draw) {
 void engine_release() {
     input_release();
     time_release();
+    render_release();
     video_release();
     frame_memory_release();
     glfwTerminate();

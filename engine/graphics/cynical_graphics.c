@@ -8,46 +8,10 @@
 #define VERTEX_POS_ATTRIBUTE_INDEX 0
 #define VERTEX_COLOR_ATTRIBUTE_INDEX 1
 
-size_t get_vertex_byte_size() {
-    // 3 floats for position
-    // 4 floats for color
-    return sizeof(float) * (3 + 4);
-}
+// #### IN-FILE IMPLEMENTATION ####
+size_t get_vertex_byte_size();
 
-vertex_attribute_t* find_vertex_attrib_by_type(material_t* material, VERTEX_ATTRIB_TYPE_T type) {
-    size_t length = material->attribute_size;
-    for (int i = 0; i < length; ++i) {
-        vertex_attribute_t* attr = material->attributes[i];
-        if (attr->type == type) {
-            return attr;
-        }
-    }
-
-    return NULL;
-}
-
-GLuint get_vertex_attrib_index(material_t* material, VERTEX_ATTRIB_TYPE_T type) {
-    GLint vertex_index = -1;
-    if (material) {
-        vertex_attribute_t* vertex_pos_attr = find_vertex_attrib_by_type(material, type);
-        if (vertex_pos_attr) {
-            vertex_index = vertex_pos_attr->handle;
-        }
-    }
-
-    if (vertex_index < 0) {
-        switch (type) {
-            case VERTEX_ATTRIB_POS:
-                vertex_index = VERTEX_POS_ATTRIBUTE_INDEX;
-                break;
-            case VERTEX_ATTRIB_COLOR:
-                vertex_index = VERTEX_COLOR_ATTRIBUTE_INDEX;
-                break;
-        }
-    }
-
-    return (GLuint) vertex_index;
-}
+GLuint get_vertex_attrib_index(material_t* material, VERTEX_ATTRIB_TYPE_T type);
 
 mesh_t* make_mesh(vertex_t* vertices_data,
                   size_t vertices_count,
@@ -140,7 +104,7 @@ void buff_mesh_data(mesh_t* mesh) {
             GL_FLOAT,
             GL_FALSE,
             stride, // there's 3 floats of position between this color and the next
-            offset // there's 3 floats of position before the first color
+            (void*) offset // there's 3 floats of position before the first color
     );
     CHECK_GL_ERROR();
 
@@ -237,8 +201,9 @@ void free_vertex_attribute(vertex_attribute_t* attribute) {
 uniform_t* make_uniform(shader_t* shader, uniform_definition_t definition) {
     uniform_t* result = malloc(sizeof(uniform_t));
     result->name = definition.name;
-    result->type = definition.type;
+    result->type = definition.data_type;
     result->data = definition.data;
+    result->tag = definition.tag;
 
     result->handle = glGetUniformLocation(shader->program_handle, definition.name);
     ASSERT(result->handle >= 0);
@@ -293,31 +258,7 @@ void free_material(material_t* material) {
     free(material);
 }
 
-GLenum get_gl_attribute_type(VERTEX_ATTRIB_TYPE_T type) {
-    switch (type) {
-        case VERTEX_ATTRIB_COLOR:
-        case VERTEX_ATTRIB_POS:
-            return GL_FLOAT;
-    }
-
-    return GL_FLOAT;
-}
-
-GLboolean get_gl_bool(bool_t value) {
-    if (value)
-        return GL_TRUE;
-    else
-        return GL_FALSE;
-}
-
-void rebuff_multiple_uniform_data(uniform_t** uniforms, size_t length) {
-    for (int i = 0; i < length; ++i) {
-        uniform_t* uniform = uniforms[i];
-        rebuff_uniform_data(uniform);
-    }
-}
-
-void rebuff_uniform_data(uniform_t* uniform) {
+void rebuff_uniform(uniform_t* uniform) {
     uniform_data_t data = uniform->data;
     float matrix_data[4][4];
     switch (uniform->type) {
@@ -350,4 +291,57 @@ void rebuff_uniform_data(uniform_t* uniform) {
             CHECK_GL_ERROR();
             break;
     }
+}
+
+uniform_t* get_uniform_by_tag(material_t* material, UNIFORM_TAG_T tag) {
+    size_t length = material->uniform_size;
+    for (int i = 0; i < length; ++i) {
+        uniform_t* uniform = material->uniforms[i];
+        if (uniform->tag == tag) {
+            return uniform;
+        }
+    }
+
+    return NULL;
+}
+
+vertex_attribute_t* find_vertex_attrib_by_type(material_t* material, VERTEX_ATTRIB_TYPE_T type) {
+    size_t length = material->attribute_size;
+    for (int i = 0; i < length; ++i) {
+        vertex_attribute_t* attr = material->attributes[i];
+        if (attr->type == type) {
+            return attr;
+        }
+    }
+
+    return NULL;
+}
+
+GLuint get_vertex_attrib_index(material_t* material, VERTEX_ATTRIB_TYPE_T type) {
+    GLint vertex_index = -1;
+    if (material) {
+        vertex_attribute_t* vertex_pos_attr = find_vertex_attrib_by_type(material, type);
+        if (vertex_pos_attr) {
+            vertex_index = vertex_pos_attr->handle;
+        }
+    }
+
+    if (vertex_index < 0) {
+        switch (type) {
+            case VERTEX_ATTRIB_POS:
+                vertex_index = VERTEX_POS_ATTRIBUTE_INDEX;
+                break;
+            case VERTEX_ATTRIB_COLOR:
+                vertex_index = VERTEX_COLOR_ATTRIBUTE_INDEX;
+                break;
+        }
+    }
+
+    return (GLuint) vertex_index;
+}
+
+size_t get_vertex_byte_size() {
+    // 3 floats for position
+    // 4 floats for color
+    return sizeof(float) * (3 + 4);
 }

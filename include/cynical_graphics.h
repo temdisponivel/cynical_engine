@@ -36,7 +36,7 @@ typedef enum {
     UNIFORM_VECTOR3,
     UNIFORM_VECTOR4,
     UNIFORM_MATRIX4X4,
-} UNIFORM_TYPE_T;
+} UNIFORM_DATA_TYPE;
 
 typedef union uniform_data_u {
     float float_value;
@@ -46,19 +46,25 @@ typedef union uniform_data_u {
     matrix4x4_t matrix4x4_value;
 } uniform_data_t;
 
-typedef struct uniform_s {
-    GLint handle;
-    UNIFORM_TYPE_T type;
-    char* name;
-    uniform_data_t data;
-    bool_t rebuff;
-} uniform_t;
+typedef enum {
+    UNIFORM_TAG_MVP,
+    USER_DEFINED,
+} UNIFORM_TAG_T;
 
 typedef struct uniform_definition_s {
     char* name;
-    UNIFORM_TYPE_T type;
+    UNIFORM_DATA_TYPE data_type;
     uniform_data_t data;
+    UNIFORM_TAG_T tag;
 } uniform_definition_t;
+
+typedef struct uniform_s {
+    GLint handle;
+    UNIFORM_DATA_TYPE type;
+    uniform_data_t data;
+    char* name;
+    UNIFORM_TAG_T tag;
+} uniform_t;
 
 typedef struct material_s {
     uniform_t** uniforms;
@@ -66,8 +72,6 @@ typedef struct material_s {
     vertex_attribute_t** attributes;
     size_t attribute_size;
     shader_t* shader;
-
-    bool_t rebuff_uniforms;
 } material_t;
 
 typedef struct vertex_s {
@@ -87,9 +91,9 @@ typedef struct mesh_s {
     GLuint vao_handle;
 
     material_t* material;
-
-    bool_t rebuff;
 } mesh_t;
+
+// ################# MESH #########################
 
 mesh_t* make_mesh(vertex_t* vertices_data,
                   size_t vertices_count,
@@ -102,9 +106,13 @@ void set_mesh_material(mesh_t* mesh, material_t* material);
 
 void buff_mesh_data(mesh_t* mesh);
 
+// ################# SHADER ########################
+
 shader_t* make_shader(const char* vertex_source, const char* fragment_source);
 
 void free_shader(shader_t* shader);
+
+// ################# MATERIAL ########################
 
 material_t* make_material(shader_t* shader,
                           uniform_definition_t* uniforms,
@@ -114,12 +122,10 @@ material_t* make_material(shader_t* shader,
 
 void free_material(material_t* material);
 
-GLenum get_gl_attribute_type(VERTEX_ATTRIB_TYPE_T type);
+uniform_t* get_uniform_by_tag(material_t* material, UNIFORM_TAG_T tag);
 
-GLboolean get_gl_bool(bool_t value);
+void rebuff_uniform(uniform_t* uniform);
 
-void rebuff_multiple_uniform_data(uniform_t** uniforms, size_t length);
-
-void rebuff_uniform_data(uniform_t* uniform);
+vertex_attribute_t* find_vertex_attrib_by_type(material_t* material, VERTEX_ATTRIB_TYPE_T type);
 
 #endif //CYNICAL_ENGINE_CYNICAL_GRAPHICS_H

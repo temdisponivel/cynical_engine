@@ -21,24 +21,22 @@ int indices[] = {
 };
 
 static const char* vertex_shader_text =
-                "attribute vec3 vPos;\n"
+        "attribute vec3 vPos;\n"
                 "attribute vec4 vCol;\n"
                 "uniform mat4 MVP;\n"
                 "varying vec4 color;\n"
                 "void main()\n"
                 "{\n"
-                "    gl_Position = vec4(vPos, 1.0);\n"
+                "    gl_Position = MVP * vec4(vPos, 1.0);\n"
                 "    color = vCol;\n"
                 "}\n";
 static const char* fragment_shader_text =
-                "varying vec4 color;\n"
+        "varying vec4 color;\n"
                 "uniform mat4 MVP;\n"
                 "void main()\n"
                 "{\n"
                 "    gl_FragColor = color;\n"
                 "}\n";
-
-static void error_callback(int error, const char* description);
 
 void setup();
 
@@ -75,16 +73,11 @@ int main(void) {
 
 void setup() {
 
-    vector2_t frame_buffer = main_window->frame_buffer_size;
-
-    float ratio = frame_buffer.x / frame_buffer.y;
-    game_camera = make_ortho_camera(-ratio, ratio, -1.f, 1.f, 0.0001f, -10000);
-    game_camera->transform->position.z = -5;
-
     triangle = make_transform();
 
-    camera_get_vp_matrix(&mvp, game_camera);
-    matrix4x4_mul(&mvp, &mvp, triangle->matrix);
+    vector2_t frame_buffer = main_window->frame_buffer_size;
+    float ratio = frame_buffer.x / frame_buffer.y;
+    game_camera = make_ortho_camera(-ratio, ratio, -1.f, 1.f, 0.0001f, -10000);
 
     main_shader = make_shader(vertex_shader_text, fragment_shader_text);
     ASSERT(main_shader);
@@ -99,8 +92,9 @@ void setup() {
 
     uniform_definition_t mvp_attribute;
     mvp_attribute.name = "MVP";
-    mvp_attribute.type = UNIFORM_MATRIX4X4;
+    mvp_attribute.data_type = UNIFORM_MATRIX4X4;
     mvp_attribute.data.matrix4x4_value = mvp;
+    mvp_attribute.tag = UNIFORM_TAG_MVP;
 
     vertex_attribute_defition_t attributes[] = {pos_attribute, col_attribute};
     uniform_definition_t uniforms[] = {mvp_attribute};
@@ -120,7 +114,7 @@ void setup() {
 
     set_mesh_material(main_mesh, main_material);
 
-    bind_material(main_material);
+    render_bind_material(main_material);
 }
 
 void update() {
@@ -128,16 +122,9 @@ void update() {
 }
 
 void draw_scene() {
-    start_draw();
-
+    render_start_draw(game_camera);
+    render_bind_material(main_material);
     transform_update_matrix(triangle);
-    camera_update_matrix(game_camera);
-
-    draw(main_mesh);
-
-    end_draw();
-}
-
-static void error_callback(int error, const char* description) {
-    fprintf(stderr, "Error: %s\n", description);
+    render_draw(triangle, main_mesh);
+    render_end_draw();
 }
