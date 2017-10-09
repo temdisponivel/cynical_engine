@@ -8,32 +8,68 @@
 #define VERTEX_POS_ATTRIBUTE_INDEX 0
 #define VERTEX_COLOR_ATTRIBUTE_INDEX 1
 
-mesh_t* make_mesh(float* vertices,
-                size_t vertice_count,
-                float* colors,
-                size_t color_count,
-                int* indices_data,
-                size_t indices_count) {
+size_t get_vertex_byte_size() {
+    // 3 floats for position
+    // 4 floats for color
+    return sizeof(float) * (3 + 4);
+}
+
+vertex_attribute_t* find_vertex_attrib_by_type(material_t* material, VERTEX_ATTRIB_TYPE_T type) {
+    size_t length = material->attribute_size;
+    for (int i = 0; i < length; ++i) {
+        vertex_attribute_t* attr = material->attributes[i];
+        if (attr->type == type) {
+            return attr;
+        }
+    }
+
+    return NULL;
+}
+
+GLuint get_vertex_attrib_index(material_t* material, VERTEX_ATTRIB_TYPE_T type) {
+    GLint vertex_index = -1;
+    if (material) {
+        vertex_attribute_t* vertex_pos_attr = find_vertex_attrib_by_type(material, type);
+        if (vertex_pos_attr) {
+            vertex_index = vertex_pos_attr->handle;
+        }
+    }
+
+    if (vertex_index < 0) {
+        switch (type) {
+            case VERTEX_ATTRIB_POS:
+                vertex_index = VERTEX_POS_ATTRIBUTE_INDEX;
+                break;
+            case VERTEX_ATTRIB_COLOR:
+                vertex_index = VERTEX_COLOR_ATTRIBUTE_INDEX;
+                break;
+        }
+    }
+
+    return (GLuint) vertex_index;
+}
+
+mesh_t* make_mesh(vertex_t* vertices_data,
+                  size_t vertices_count,
+                  int* indices_data,
+                  size_t indices_count) {
 
     GLuint vao_handle;
     glGenVertexArrays(1, &vao_handle);
-    //ASSERT(vao_handle >= 0);
+    ASSERT(vao_handle >= 0);
     glBindVertexArray(vao_handle);
 
     GLuint vertex_vbo;
     glGenBuffers(1, &vertex_vbo);
-    //ASSERT(vertex_vbo >= 0);
+    ASSERT(vertex_vbo >= 0);
 
     GLuint indices_vbo;
     glGenBuffers(1, &indices_vbo);
-    //ASSERT(indices_vbo >= 0);
+    ASSERT(indices_vbo >= 0);
 
-    mesh_t* mesh = malloc(sizeof(mesh_t));
-    mesh->vertices = vertices;
-    mesh->vertices_count = vertice_count;
-
-    mesh->colors = colors;
-    mesh->colors_count = color_count;
+    mesh_t* mesh = calloc(1, sizeof(mesh_t));
+    mesh->vertices = vertices_data;
+    mesh->vertices_count = vertices_count;
 
     mesh->indices = indices_data;
     mesh->indices_count = indices_count;
@@ -42,11 +78,12 @@ mesh_t* make_mesh(float* vertices,
     mesh->vbo_handle = vertex_vbo;
     mesh->vao_handle = vao_handle;
 
-
-
-    buff_mesh_data(mesh);
-
     return mesh;
+}
+
+void set_mesh_material(mesh_t* mesh, material_t* material) {
+    mesh->material = material;
+    buff_mesh_data(mesh);
 }
 
 void buff_mesh_data(mesh_t* mesh) {
@@ -54,16 +91,21 @@ void buff_mesh_data(mesh_t* mesh) {
 
     CHECK_GL_ERROR();
 
-    size_t full_vertex_data_byte_size = sizeof(float) * (mesh->vertices_count + mesh->colors_count);
+    size_t full_vertex_data_byte_size = get_vertex_byte_size() * mesh->vertices_count;
     float* full_vertex_data = frame_memory_calloc(full_vertex_data_byte_size);
 
-    int i = 0;
-    for (; i < mesh->vertices_count; ++i) {
-        full_vertex_data[i] = mesh->vertices[i];
-    }
+    int j = 0;
+    for (int i = 0; i < mesh->vertices_count; i++) {
+        vertex_t vertex = mesh->vertices[i];
 
-    for (int j = 0; j < mesh->colors_count; ++j, ++i) {
-        full_vertex_data[i] = mesh->colors[j];
+        full_vertex_data[j++] = vertex.position.x;
+        full_vertex_data[j++] = vertex.position.y;
+        full_vertex_data[j++] = vertex.position.z;
+
+        full_vertex_data[j++] = vertex.color.x;
+        full_vertex_data[j++] = vertex.color.y;
+        full_vertex_data[j++] = vertex.color.z;
+        full_vertex_data[j++] = vertex.color.w;
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_handle);
@@ -72,30 +114,37 @@ void buff_mesh_data(mesh_t* mesh) {
     glBufferData(GL_ARRAY_BUFFER, full_vertex_data_byte_size, full_vertex_data, GL_STATIC_DRAW);
     CHECK_GL_ERROR();
 
+    size_t stride = sizeof(float) * (3 + 4);
+
+    GLuint vertex_pos_index = get_vertex_attrib_index(mesh->material, VERTEX_ATTRIB_POS);
+
     glVertexAttribPointer(
-            VERTEX_POS_ATTRIBUTE_INDEX,
-            3,
+            vertex_pos_index,
+            3, // there's 3 floats representing position
             GL_FLOAT,
             GL_FALSE,
-            0,
+            stride,
             0
     );
     CHECK_GL_ERROR();
 
-    glEnableVertexAttribArray(VERTEX_POS_ATTRIBUTE_INDEX);
+    glEnableVertexAttribArray(vertex_pos_index);
     CHECK_GL_ERROR();
 
+    GLuint vertex_color_index = get_vertex_attrib_index(mesh->material, VERTEX_ATTRIB_COLOR);
+
+    size_t offset = sizeof(float) * 3;
     glVertexAttribPointer(
-            VERTEX_COLOR_ATTRIBUTE_INDEX,
-            4,
+            vertex_color_index,
+            4, // there's 4 floats representing color
             GL_FLOAT,
             GL_FALSE,
-            0,
-            (void*) (sizeof(float) * mesh->vertices_count)
+            stride, // there's 3 floats of position between this color and the next
+            offset // there's 3 floats of position before the first color
     );
     CHECK_GL_ERROR();
 
-    glEnableVertexAttribArray(VERTEX_COLOR_ATTRIBUTE_INDEX);
+    glEnableVertexAttribArray(vertex_color_index);
     CHECK_GL_ERROR();
 
     frame_memory_free(full_vertex_data);
@@ -143,7 +192,7 @@ shader_t* make_shader(const char* vertex_source, const char* fragment_source) {
 
     CHECK_SHADER_LINK_STATUS(program_handle);
 
-    shader_t* result = malloc(sizeof(shader_t));
+    shader_t* result = calloc(1, sizeof(shader_t));
     result->program_handle = program_handle;
     result->vertex_handle = vertex_handle;
     result->fragment_handle = fragment_handle;
@@ -157,36 +206,26 @@ void free_shader(shader_t* shader) {
     free(shader);
 }
 
-size_t get_attribute_dimention(VERTEX_ATTRIB_TYPE_T type) {
-    switch (type) {
-        case VERTEX_ATTRIB_POS:
-            return 3;
-        case VERTEX_ATTRIB_COLOR:
-            return 4;
-    }
-}
-
 vertex_attribute_t* make_vertex_attribute(shader_t* shader, vertex_attribute_defition_t definition) {
 
     vertex_attribute_t* attribute = malloc(sizeof(vertex_attribute_t));
     attribute->type = definition.type;
-    attribute->offset = definition.offset;
-    attribute->padding = definition.padding;
     attribute->name = definition.name;
-    attribute->normalized = definition.normalized;
-    attribute->dimention = get_attribute_dimention(definition.type);
 
     attribute->handle = glGetAttribLocation(shader->program_handle, definition.name);
+    CHECK_GL_ERROR()
     ASSERT(attribute->handle >= 0);
 
-    switch (attribute->type) {
-        case VERTEX_ATTRIB_POS:
-            glBindAttribLocation(shader->program_handle, VERTEX_POS_ATTRIBUTE_INDEX, definition.name);
-            break;
-        case VERTEX_ATTRIB_COLOR:
-            glBindAttribLocation(shader->program_handle, VERTEX_COLOR_ATTRIBUTE_INDEX, definition.name);
-            break;
-    }
+//    switch (attribute->type) {
+//        case VERTEX_ATTRIB_POS:
+//            glBindAttribLocation(shader->program_handle, VERTEX_POS_ATTRIBUTE_INDEX, definition.name);
+//            CHECK_GL_ERROR();
+//            break;
+//        case VERTEX_ATTRIB_COLOR:
+//            glBindAttribLocation(shader->program_handle, VERTEX_COLOR_ATTRIBUTE_INDEX, definition.name);
+//            CHECK_GL_ERROR();
+//            break;
+//    }
 
     return attribute;
 }
@@ -212,22 +251,24 @@ void free_uniform(uniform_t* uniform) {
 }
 
 material_t* make_material(shader_t* shader,
-                        uniform_definition_t* uniforms,
-                        size_t uniforms_size,
-                        vertex_attribute_defition_t* vertex_attributes,
-                        size_t vertex_attributes_size) {
+                          uniform_definition_t* uniforms,
+                          size_t uniforms_size,
+                          vertex_attribute_defition_t* vertex_attributes,
+                          size_t vertex_attributes_size) {
 
-    uniform_t** uniform_list = malloc(sizeof(uniform_t*) * uniforms_size);
+    glUseProgram(shader->program_handle);
+
+    uniform_t** uniform_list = calloc(uniforms_size, sizeof(uniform_t*));
     for (int i = 0; i < uniforms_size; ++i) {
         uniform_list[i] = make_uniform(shader, uniforms[i]);
     }
 
-    vertex_attribute_t** vertex_attribute_list = malloc(sizeof(vertex_attribute_t*) * vertex_attributes_size);
+    vertex_attribute_t** vertex_attribute_list = calloc(vertex_attributes_size, sizeof(vertex_attribute_t*));
     for (int i = 0; i < vertex_attributes_size; ++i) {
         vertex_attribute_list[i] = make_vertex_attribute(shader, vertex_attributes[i]);
     }
 
-    material_t* material = malloc(sizeof(material_t));
+    material_t* material = calloc(1, sizeof(material_t));
     material->shader = shader;
     material->uniforms = uniform_list;
     material->uniform_size = uniforms_size;
@@ -304,7 +345,7 @@ void rebuff_uniform_data(uniform_t* uniform) {
             CHECK_GL_ERROR();
             break;
         case UNIFORM_MATRIX4X4:
-            get_gl_matrix4x4(matrix_data, data.matrix4x4_value);
+            get_gl_matrix4x4(matrix_data, &data.matrix4x4_value);
             glUniformMatrix4fv(uniform->handle, 1, GL_FALSE, (const GLfloat*) matrix_data);
             CHECK_GL_ERROR();
             break;

@@ -8,34 +8,31 @@
 #include <cynical_render.h>
 
 
-float vertices[] = {
-        -0.5f, -0.5f, 0.f, // vertex 0
-        0.5f, -0.5f, 0.f,  // vertex 1
-        0.f, 0.5f, 0.f,    // vertex 2
-};
-
-float colors[] = {
-        1.f, 0.f, 0.f, 1.0f, // vertex 0
-        0.f, 1.f, 0.f, 1.0f, // vertex 1
-        0.f, 0.f, 1.f, 1.0f  // vertex 2
+vertex_t vertices[] = {
+        // POSITION         // COLOR
+        -0.5f, -0.5f, 0.f, 1.f, 0.f, 0.f, 1.0f, // bottom left
+        -0.5f, 0.5f, 0.f, 0.f, 1.f, 0.f, 1.0f, // top left
+        0.5f, 0.5f, 0.f, 0.f, 0.f, 1.f, 1.0f, // top right
+        0.5f, -0.5f, 0.f, 0.f, 1.f, 1.f, 1.0f, // bottom right
 };
 
 int indices[] = {
-        0, 1, 2
+        0, 1, 2, 2, 3, 0
 };
 
 static const char* vertex_shader_text =
-        "uniform mat4 MVP;\n"
-                "attribute vec4 vCol;\n"
                 "attribute vec3 vPos;\n"
+                "attribute vec4 vCol;\n"
+                "uniform mat4 MVP;\n"
                 "varying vec4 color;\n"
                 "void main()\n"
                 "{\n"
-                "    gl_Position = MVP * vec4(vPos, 1.0);\n"
+                "    gl_Position = vec4(vPos, 1.0);\n"
                 "    color = vCol;\n"
                 "}\n";
 static const char* fragment_shader_text =
                 "varying vec4 color;\n"
+                "uniform mat4 MVP;\n"
                 "void main()\n"
                 "{\n"
                 "    gl_FragColor = color;\n"
@@ -86,53 +83,44 @@ void setup() {
 
     triangle = make_transform();
 
+    camera_get_vp_matrix(&mvp, game_camera);
+    matrix4x4_mul(&mvp, &mvp, triangle->matrix);
+
     main_shader = make_shader(vertex_shader_text, fragment_shader_text);
     ASSERT(main_shader);
 
     vertex_attribute_defition_t pos_attribute;
     pos_attribute.type = VERTEX_ATTRIB_POS;
     pos_attribute.name = "vPos";
-    pos_attribute.padding = 0;
-    pos_attribute.offset = 0;
-    pos_attribute.normalized = false;
 
     vertex_attribute_defition_t col_attribute;
     col_attribute.type = VERTEX_ATTRIB_COLOR;
     col_attribute.name = "vCol";
-    col_attribute.padding = 0;
-    col_attribute.offset = 6;
-    col_attribute.normalized = false;
 
     uniform_definition_t mvp_attribute;
     mvp_attribute.name = "MVP";
     mvp_attribute.type = UNIFORM_MATRIX4X4;
-    mvp_attribute.data.matrix4x4_value = &mvp;
+    mvp_attribute.data.matrix4x4_value = mvp;
 
     vertex_attribute_defition_t attributes[] = {pos_attribute, col_attribute};
     uniform_definition_t uniforms[] = {mvp_attribute};
     main_material = make_material(main_shader, uniforms, 1, attributes, 2);
     ASSERT(main_material);
 
-    float* vertices_array = vertices;
-    size_t vertices_count = 3 * 3;
-
-    float* colors_array = colors;
-    size_t colors_count = 4 * 3;
-
     int* indices_array = indices;
-    size_t indices_count = vertices_count / 3;
+    size_t indices_count = 5;
 
     main_mesh = make_mesh(
-            vertices_array,
-            vertices_count,
-            colors_array,
-            colors_count,
+            vertices,
+            4,
             indices_array,
             indices_count);
 
     ASSERT(main_mesh);
 
-    main_mesh->material = main_material;
+    set_mesh_material(main_mesh, main_material);
+
+    bind_material(main_material);
 }
 
 void update() {
@@ -145,10 +133,6 @@ void draw_scene() {
     transform_update_matrix(triangle);
     camera_update_matrix(game_camera);
 
-    camera_get_vp_matrix(&mvp, game_camera);
-    matrix4x4_mul(&mvp, &mvp, triangle->matrix);
-
-    bind_material(main_material);
     draw(main_mesh);
 
     end_draw();

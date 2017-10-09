@@ -21,19 +21,12 @@ typedef enum {
 
 typedef struct vertex_attribute_s {
     VERTEX_ATTRIB_TYPE_T type;
-    size_t dimention;
-    bool_t normalized;
-    int padding;
-    int offset;
     GLint handle;
     char* name;
 } vertex_attribute_t;
 
 typedef struct vertex_attribute_defition_s {
     char* name;
-    bool_t normalized;
-    int padding;
-    int offset;
     VERTEX_ATTRIB_TYPE_T type;
 } vertex_attribute_defition_t;
 
@@ -50,7 +43,7 @@ typedef union uniform_data_u {
     vector2_t vector2_value;
     vector3_t vector3_value;
     vector4_t vector4_value;
-    matrix4x4_t* matrix4x4_value;
+    matrix4x4_t matrix4x4_value;
 } uniform_data_t;
 
 typedef struct uniform_s {
@@ -73,14 +66,18 @@ typedef struct material_s {
     vertex_attribute_t** attributes;
     size_t attribute_size;
     shader_t* shader;
+
+    bool_t rebuff_uniforms;
 } material_t;
 
-typedef struct mesh_s {
-    float* vertices;
-    size_t vertices_count;
+typedef struct vertex_s {
+    vector3_t position;
+    vector4_t color;
+} vertex_t;
 
-    float* colors;
-    size_t colors_count;
+typedef struct mesh_s {
+    vertex_t* vertices;
+    size_t vertices_count;
 
     int* indices;
     size_t indices_count;
@@ -94,14 +91,14 @@ typedef struct mesh_s {
     bool_t rebuff;
 } mesh_t;
 
-mesh_t* make_mesh(float* vertices,
-                size_t vertice_count,
-                float* colors,
-                size_t color_count,
-                int* indices_data,
-                size_t indices_count);
+mesh_t* make_mesh(vertex_t* vertices_data,
+                  size_t vertices_count,
+                  int* indices_data,
+                  size_t indices_count);
 
 void free_mesh(mesh_t* mesh);
+
+void set_mesh_material(mesh_t* mesh, material_t* material);
 
 void buff_mesh_data(mesh_t* mesh);
 
@@ -110,10 +107,10 @@ shader_t* make_shader(const char* vertex_source, const char* fragment_source);
 void free_shader(shader_t* shader);
 
 material_t* make_material(shader_t* shader,
-                        uniform_definition_t* uniforms,
-                        size_t uniforms_size,
-                        vertex_attribute_defition_t* vertex_attributes,
-                        size_t vertex_attributes_size);
+                          uniform_definition_t* uniforms,
+                          size_t uniforms_size,
+                          vertex_attribute_defition_t* vertex_attributes,
+                          size_t vertex_attributes_size);
 
 void free_material(material_t* material);
 

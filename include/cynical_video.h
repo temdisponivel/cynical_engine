@@ -44,10 +44,11 @@ void frame_buffer_updated(vector2_t new_size);
 
 void set_window_size(vector2_t new_size);
 
+void set_window_position(vector2_t pos);
+
 void window_resized(vector2_t new_size);
 
 void window_moved(vector2_t new_pos);
 
-void window_moved(vector2_t new_pos);
 
 #endif //CYNICAL_ENGINE_CYNICAL_WINDOW_H

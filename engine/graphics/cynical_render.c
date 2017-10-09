@@ -13,7 +13,10 @@ void bind_material(material_t* material) {
     glUseProgram(material->shader->program_handle);
     CHECK_GL_ERROR();
 
-    rebuff_multiple_uniform_data(material->uniforms, material->uniform_size);
+    if (material->rebuff_uniforms) {
+        rebuff_multiple_uniform_data(material->uniforms, material->uniform_size);
+        material->rebuff_uniforms = false;
+    }
 }
 
 void draw(mesh_t* mesh) {
@@ -29,7 +32,7 @@ void draw(mesh_t* mesh) {
     CHECK_GL_ERROR();
 
     glDrawElements(
-            GL_TRIANGLES,
+            GL_TRIANGLE_FAN,
             mesh->indices_count,
             GL_UNSIGNED_INT,
             NULL
