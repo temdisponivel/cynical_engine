@@ -142,8 +142,6 @@ vector3_t camera_screen_to_world_coord(camera_t* camera, vector3_t screen_coord)
     camera_get_vp_matrix(&vp, camera);
     matrix4x4_invert(&vp, &vp);
 
-    MATRIX4x4_PRINT(&vp);
-
     vector4_t multiplied_vector;
     matrix4x4_mul_vector4(&multiplied_vector, &vp, &point);
     vector4_t result_vector = vector4_scale(multiplied_vector, 1.f / multiplied_vector.w);

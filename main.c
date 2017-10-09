@@ -80,7 +80,10 @@ void setup() {
 
     vector2_t frame_buffer = main_window->frame_buffer_size;
     float ratio = frame_buffer.x / frame_buffer.y;
-    game_camera = make_ortho_camera(-ratio, ratio, -1.f, 1.f, 0.0001f, -100);
+    //game_camera = make_ortho_camera(-ratio, ratio, -1.f, 1.f, 0.0001f, -100);
+    game_camera = make_perspective_camera(90, ratio, 0.0001f, -1000);
+
+    game_camera->transform->position.z = 1;
 
     main_shader = make_shader(vertex_shader_text, fragment_shader_text);
     ASSERT(main_shader);
@@ -155,6 +158,30 @@ void handle_input() {
         triangle->position = vector3_add(triangle->position, vector3_down());
 
         VECTOR3_PRINT(triangle->position);
+    }
+
+    if (is_key_pressed(KEY_W)) {
+        triangle->rotation = quaternion_rotate(triangle->rotation, 10, vector3_right());
+    }
+
+    if (is_key_pressed(KEY_S)) {
+        triangle->rotation = quaternion_rotate(triangle->rotation, 10, vector3_left());
+    }
+
+    if (is_key_pressed(KEY_A)) {
+        triangle->rotation = quaternion_rotate(triangle->rotation, 10, vector3_down());
+    }
+
+    if (is_key_pressed(KEY_D)) {
+        triangle->rotation = quaternion_rotate(triangle->rotation, 10, vector3_up());
+    }
+
+    if (is_key_pressed(KEY_KP_ADD)) {
+        triangle->scale = vector3_scale(triangle->scale, 2);
+    }
+
+    if (is_key_pressed(KEY_KP_SUBTRACT)) {
+        triangle->scale = vector3_scale(triangle->scale, .5f);
     }
 
     triangle->position = vector3_add(triangle->position, make_vector3(0, 0, get_mouse_scroll().y));

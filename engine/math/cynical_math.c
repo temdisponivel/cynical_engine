@@ -1313,6 +1313,6 @@ void transform_update_matrix(transform_t* transform) {
     matrix4x4_translate(&translation_matrix, transform->position);
 
     set_matrix4x4_identity(transform->matrix);
-    matrix4x4_mul(transform->matrix, &scale_matrix, &rotation_matrix);
-    matrix4x4_mul(transform->matrix, transform->matrix, &translation_matrix);
+    matrix4x4_mul(transform->matrix, &translation_matrix, &rotation_matrix);
+    matrix4x4_mul(transform->matrix, transform->matrix, &scale_matrix);
 }
