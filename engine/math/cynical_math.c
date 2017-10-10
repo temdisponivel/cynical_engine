@@ -1229,38 +1229,50 @@ quaternion_t quaternion_from_matrix4x4(matrix4x4_t* data) {
     return quat;
 }
 
-quaternion_t quaternion_from_euler(vector3_t euler) {
-    double cp = cos(euler.x * 0.5);
-    double sp = sin(euler.x * 0.5);
-    double cy = cos(euler.y * 0.5);
-    double sy = sin(euler.y * 0.5);
-    double cr = cos(euler.z * 0.5);
-    double sr = sin(euler.z * 0.5);
+quaternion_t quaternion_from_rotation_axis(vector3_t axis, float angle) {
+    angle = to_rad(angle);
+    float half_angle = angle * .5f;
+    float s = sinf(half_angle);
+    quaternion_t quat;
+    quat.x = axis.x * s;
+    quat.y = axis.y * s;
+    quat.z = axis.z * s;
+    quat.w = cosf(half_angle);
+    return quat;
+}
 
-    double x = cy * sr * cp - sy * cr * sp;
-    double y = cy * cr * sp + sy * sr * cp;
-    double z = sy * cr * cp - cy * sr * sp;
-    double w = cy * cr * cp + sy * sr * sp;
+quaternion_t quaternion_from_euler(vector3_t euler) {
+    float cp = cosf(euler.x * 0.5f);
+    float sp = sinf(euler.x * 0.5f);
+    float cy = cosf(euler.y * 0.5f);
+    float sy = sinf(euler.y * 0.5f);
+    float cr = cosf(euler.z * 0.5f);
+    float sr = sinf(euler.z * 0.5f);
+
+    float x = cy * sr * cp - sy * cr * sp;
+    float y = cy * cr * sp + sy * sr * cp;
+    float z = sy * cr * cp - cy * sr * sp;
+    float w = cy * cr * cp + sy * sr * sp;
 
     return make_quaternion(x, y, z, w);
 }
 
 vector3_t quaternion_to_euler(quaternion_t quat) {
-    double sinr = +2.0 * (quat.w * quat.x + quat.y * quat.z);
-    double cosr = +1.0 - 2.0 * (quat.x * quat.x + quat.y) * quat.y;
-    float x = atan2(sinr, cosr);
+    float sinr = 2.0f * (quat.w * quat.x + quat.y * quat.z);
+    float cosr = 1.0f - 2.0f * (quat.x * quat.x + quat.y) * quat.y;
+    float x = atan2f(sinr, cosr);
 
     float y;
-    double sinp = +2.0 * (quat.w * quat.y - quat.z * quat.x);
+    float sinp = 2.0f * (quat.w * quat.y - quat.z * quat.x);
     if (fabs(sinp) >= 1)
-        y = copysign(M_PI / 2, sinp); // use 90 degrees if out of range
+        y = copysignf(M_PI / 2.f, sinp); // use 90 degrees if out of range
     else
-        y = asin(sinp);
+        y = asinf(sinp);
 
     // yaw (z-axis rotation)
-    double siny = +2.0 * (quat.w * quat.z + quat.x * quat.y);
-    double cosy = +1.0 - 2.0 * (quat.y * quat.y + quat.z * quat.z);
-    float z = atan2(siny, cosy);
+    float siny = 2.0f * (quat.w * quat.z + quat.x * quat.y);
+    float cosy = 1.0f - 2.0f * (quat.y * quat.y + quat.z * quat.z);
+    float z = atan2f(siny, cosy);
 
     return make_vector3(x, y, z);
 }
@@ -1362,10 +1374,24 @@ void transform_rotate(transform_t* transform, vector3_t ordered_rotation) {
     transform->rotation = rotation;
 }
 
+// https://gamedev.stackexchange.com/questions/15070/orienting-a-model-to-face-a-target
 void transform_look_at(transform_t* transform, vector3_t point) {
-    matrix4x4_t look_at;
-    matrix4x4_look_at(&look_at, transform->position, point, vector3_up());
-    transform->rotation = quaternion_from_matrix4x4(&look_at);
+    vector3_t direction = vector3_sub(transform->position, point);
+    direction = vector3_norm(direction);
+
+    float diff = vector3_dot(vector3_forward(), direction);
+
+    if (pratically_equal(diff, -1)) {
+        const vector3_t up = vector3_up();
+        transform->rotation = make_quaternion(up.x, up.y, up.z, to_rad(180.0f));
+    } else if (pratically_equal(diff, 1)) {
+        transform->rotation = quaternion_identity();
+    } else {
+        float rotation_angle = acosf(diff);
+        vector3_t rotation_axis = vector3_cross(vector3_forward(), direction);
+        rotation_axis = vector3_norm(rotation_axis);
+        transform->rotation = quaternion_from_rotation_axis(rotation_axis, to_degree(rotation_angle));
+    }
 }
 
 void transform_update_direction_vectors(transform_t* transform) {

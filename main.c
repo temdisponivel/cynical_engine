@@ -270,6 +270,12 @@ void move_camera() {
 
     update_transforms();
 
+    if (is_key_up(KEY_SPACE)) {
+        transform_look_at(transform, quad->position);
+    }
+
+    update_transforms();
+
     game_camera->transform->position = transform->position;
     game_camera->transform->rotation = transform->rotation;
 

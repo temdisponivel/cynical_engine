@@ -79,6 +79,7 @@ typedef struct transform_s {
 #define RAD_TO_DEGREE 57.29578f
 #define DEGREE_TO_RAD 0.01745329f
 #define SECONDS_TO_NANO 100000000
+#define FLOAT_PRATICALLY_EQUAL_DIFF 0.00000001f
 
 static inline float normalize(float value, float min, float max) {
     return (value - min) / (max - min);
@@ -110,6 +111,17 @@ static inline float min(float a, float b) {
 
 static inline float max(float a, float b) {
     return a > b ? a : b;
+}
+
+static inline float absf(float a) {
+    if (a < 0)
+        return -a;
+    else
+        return a;
+}
+
+static inline float pratically_equal(float a, float b) {
+    return absf(a - b) < FLOAT_PRATICALLY_EQUAL_DIFF;
 }
 
 
@@ -353,6 +365,8 @@ void set_matrix4x4_data_from_quaternion(matrix4x4_t* result, quaternion_t quat);
 void matrix4x4_mul_quat(matrix4x4_t* result, const matrix4x4_t* matrix, quaternion_t quat);
 
 quaternion_t quaternion_from_matrix4x4(matrix4x4_t* data);
+
+quaternion_t quaternion_from_rotation_axis(vector3_t axis, float angle);
 
 quaternion_t quaternion_from_euler(vector3_t euler);
 
