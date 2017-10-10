@@ -1280,12 +1280,36 @@ void quaternion_string(char* result, quaternion_t quat) {
     sprintf(result, fmt, quat.x, quat.y, quat.z, quat.w);
 }
 
+// #### https://nic-gamedev.blogspot.com.br/2011/11/quaternion-math-getting-local-axis.html
+
+vector3_t quaternion_get_forward_vector(quaternion_t quat) {
+    float x = 2 * (quat.x * quat.z + quat.w * quat.y);
+    float y = 2 * (quat.y * quat.x - quat.w * quat.x);
+    float z = 1 - 2 * (quat.x * quat.x + quat.y * quat.y);
+    return make_vector3(x, y, z);
+}
+
+vector3_t quaternion_get_up_vector(quaternion_t quat) {
+    float x = 2 * (quat.x * quat.y - quat.w * quat.z);
+    float y = 1 - 2 * (quat.x * quat.x + quat.z * quat.z);
+    float z = 2 * (quat.y * quat.z - quat.w * quat.x);
+    return make_vector3(x, y, z);
+}
+
+vector3_t quaternion_get_right_vector(quaternion_t quat) {
+
+    float x = 1 - 2 * (quat.y * quat.y + quat.z * quat.z);
+    float y = 2 * (quat.x * quat.y - quat.w * quat.z);
+    float z = 2 * (quat.x * quat.z - quat.w * quat.y);
+    return make_vector3(x, y, z);
+}
+
 // ########################## TRANSFORM ###############################
 
 transform_t* make_transform() {
     transform_t* result = malloc(sizeof(transform_t));
 
-    result->matrix = make_matrix4x4();
+    result->local_to_world = make_matrix4x4();
     result->position = vector3_zero();
     result->scale = vector3_one();
     result->rotation = quaternion_identity();
@@ -1297,7 +1321,7 @@ transform_t* make_transform() {
 }
 
 void free_transform(transform_t* transform) {
-    free_matrix4x4(transform->matrix);
+    free_matrix4x4(transform->local_to_world);
     free(transform);
 }
 
@@ -1313,7 +1337,44 @@ void transform_update_matrix(transform_t* transform) {
     set_matrix4x4_identity(&translation_matrix);
     matrix4x4_translate(&translation_matrix, transform->position);
 
-    set_matrix4x4_identity(transform->matrix);
-    matrix4x4_mul(transform->matrix, &translation_matrix, &rotation_matrix);
-    matrix4x4_mul(transform->matrix, transform->matrix, &scale_matrix);
+    set_matrix4x4_identity(transform->local_to_world);
+    matrix4x4_mul(transform->local_to_world, &translation_matrix, &rotation_matrix);
+    matrix4x4_mul(transform->local_to_world, transform->local_to_world, &scale_matrix);
+}
+
+void transform_rotate_around(transform_t* transform, vector3_t point, vector3_t axis, float angle) {
+    vector3_t position = transform->position;
+    quaternion_t rotation = transform->rotation;
+
+    position = vector3_sub(position, point);
+    quaternion_t new_rotation = quaternion_rotate(rotation, angle, axis);
+    vector3_t new_position = quaternion_mul_vec3(rotation, position);
+
+    transform->rotation = new_rotation;
+    transform->position = new_position;
+}
+
+void transform_rotate(transform_t* transform, vector3_t ordered_rotation) {
+    quaternion_t rotation = transform->rotation;
+    rotation = quaternion_rotate(rotation, ordered_rotation.z, vector3_forward());
+    rotation = quaternion_rotate(rotation, ordered_rotation.y, vector3_up());
+    rotation = quaternion_rotate(rotation, ordered_rotation.x, vector3_right());
+    transform->rotation = rotation;
+}
+
+void transform_look_at(transform_t* transform, vector3_t point) {
+    matrix4x4_t look_at;
+    matrix4x4_look_at(&look_at, transform->position, point, vector3_up());
+    transform->rotation = quaternion_from_matrix4x4(&look_at);
+}
+
+void transform_update_direction_vectors(transform_t* transform) {
+    quaternion_t rotation = transform->rotation;
+
+    transform->forward = quaternion_get_forward_vector(rotation);
+
+    VECTOR3_PRINT(transform->forward);
+
+    transform->up = quaternion_get_up_vector(rotation);
+    transform->right = quaternion_get_right_vector(rotation);
 }

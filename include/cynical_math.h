@@ -7,9 +7,11 @@
 
 #include <malloc.h>
 #include <cynical_debug.h>
+#include <limits.h>
 
 #define false 0
 #define true 1
+
 
 typedef short bool_t;
 
@@ -69,7 +71,7 @@ typedef struct transform_s {
     vector3_t up;
     vector3_t right;
 
-    matrix4x4_t* matrix;
+    matrix4x4_t* local_to_world;
 } transform_t;
 
 // ################ GENERAL #################################
@@ -362,13 +364,27 @@ bool_t quaternion_compare(quaternion_t a, quaternion_t b);
 
 void quaternion_string(char* result, quaternion_t quat);
 
+vector3_t quaternion_get_forward_vector(quaternion_t quat);
+
+vector3_t quaternion_get_up_vector(quaternion_t quat);
+
+vector3_t quaternion_get_right_vector(quaternion_t quat);
+
 // ########################## TRANSFORM ###############################
 
 transform_t* make_transform();
 
 void free_transform(transform_t* transform);
 
+void transform_rotate_around(transform_t* transform, vector3_t point, vector3_t axis, float angle);
+
+void transform_rotate(transform_t* transform, vector3_t ordered_rotation);
+
+void transform_look_at(transform_t* transform, vector3_t point);
+
 void transform_update_matrix(transform_t* transform);
+
+void transform_update_direction_vectors(transform_t* transform);
 
 #ifdef CYNICAL_DEBUG
 

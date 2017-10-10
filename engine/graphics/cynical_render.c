@@ -41,7 +41,7 @@ void render_draw(transform_t* mesh_transform, mesh_t* mesh) {
     // if the currently binded shader has a MVP uniform, define it
     if (main_render_state->mvp_uniform) {
         matrix4x4_t mvp;
-        matrix4x4_mul(&mvp, main_render_state->vp_matrix, mesh_transform->matrix);
+        matrix4x4_mul(&mvp, main_render_state->vp_matrix, mesh_transform->local_to_world);
         main_render_state->mvp_uniform->data.matrix4x4_value = mvp;
         rebuff_uniform(main_render_state->mvp_uniform);
     }
@@ -58,6 +58,7 @@ void render_draw(transform_t* mesh_transform, mesh_t* mesh) {
             GL_UNSIGNED_INT,
             NULL
     );
+
     CHECK_GL_ERROR();
 }
 

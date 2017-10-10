@@ -11,16 +11,54 @@
 
 #include "dependencies/include/linmath/linmath.h"
 
-vertex_t vertices[] = {
+vertex_t plane[] = {
         // POSITION         // COLOR
         -0.5f, -0.5f, 0.f, 1.f, 0.f, 0.f, 1.0f, // bottom left
-        -0.5f, 0.5f, 0.f, 0.f, 1.f, 0.f, 1.0f, // top left
-        0.5f, 0.5f, 0.f, 0.f, 0.f, 1.f, 1.0f, // top right
-        0.5f, -0.5f, 0.f, 0.f, 1.f, 1.f, 1.0f, // bottom right
+        -0.5f, 0.5f, 0.f, 0.f, 1.f, 0.f, 1.0f,  // top left
+        0.5f, 0.5f, 0.f, 0.f, 0.f, 1.f, 1.0f,   // top right
+        0.5f, -0.5f, 0.f, 0.f, 1.f, 1.f, 1.0f,  // bottom right
 };
 
-int indices[] = {
+vertex_t box[] = {
+        // POSITION         // COLOR
+        -0.5f, -0.5f, 0.f, 1.f, 0.f, 0.f, 1.0f,
+        -0.5f, 0.5f, 0.f, 0.f, 1.f, 0.f, 1.0f,  // FRONT-FACE
+        0.5f, 0.5f, 0.f, 0.f, 0.f, 1.f, 1.0f,
+        0.5f, -0.5f, 0.f, 0.f, 1.f, 1.f, 1.0f,
+
+        -0.5f, -0.5f, 1.f, 1.f, 0.f, 0.f, 1.0f,
+        -0.5f, 0.5f, 1.f, 0.f, 1.f, 0.f, 1.0f,
+        0.5f, 0.5f, 1.f, 0.f, 0.f, 1.f, 1.0f,   // BACK-FACE
+        0.5f, -0.5f, 1.f, 0.f, 1.f, 1.f, 1.0f,
+
+        0.5f, -0.5f, 0.f, 1.f, 0.f, 0.f, 1.0f,
+        0.5f, 0.5f, 0.f, 0.f, 1.f, 0.f, 1.0f,
+        0.5f, 0.5f, 1.f, 0.f, 0.f, 1.f, 1.0f,   // RIGHT-FACE
+        0.5f, -0.5f, 1.f, 0.f, 1.f, 1.f, 1.0f,
+
+        -0.5f, -0.5f, 0.f, 1.f, 0.f, 0.f, 1.0f,
+        -0.5f, 0.5f, 0.f, 0.f, 1.f, 0.f, 1.0f,
+        -0.5f, 0.5f, 1.f, 0.f, 0.f, 1.f, 1.0f,    // LEFT-FACE
+        -0.5f, -0.5f, 1.f, 0.f, 1.f, 1.f, 1.0f,
+
+        -0.5f, 0.5f, 0.f, 1.f, 0.f, 0.f, 1.0f,
+        -0.5f, 0.5f, 1.f, 0.f, 1.f, 0.f, 1.0f,
+        0.5f, 0.5f, 1.f, 0.f, 0.f, 1.f, 1.0f,   // TOP-FACE
+        0.5f, 0.5f, 0.f, 0.f, 1.f, 1.f, 1.0f,
+
+        -0.5f, -0.5f, 0.f, 1.f, 0.f, 0.f, 1.0f,
+        -0.5f, -0.5f, 1.f, 0.f, 1.f, 0.f, 1.0f,
+        0.5f, -0.5f, 1.f, 0.f, 0.f, 1.f, 1.0f,    // BOTTOM-FACE
+        0.5f, -0.5f, 0.f, 0.f, 1.f, 1.f, 1.0f,
+};
+
+int quad_indices[] = {
         0, 1, 2, 2, 3, 0
+};
+
+int cube_indices[] = {
+        0, 1, 2, 2, 3, 0,
+        0, 1, 2, 2, 3, 0,
 };
 
 static const char* vertex_shader_text =
@@ -49,13 +87,17 @@ void update();
 
 void handle_input();
 
-transform_t* triangle;
+transform_t* quad;
+transform_t* cube;
 camera_t* game_camera;
 
 matrix4x4_t mvp;
 shader_t* main_shader;
-material_t* main_material;
-mesh_t* main_mesh;
+material_t* quad_material;
+material_t* cube_material;
+
+mesh_t* quad_mesh;
+mesh_t* cube_mesh;
 
 int main(void) {
     if (!engine_init(&update, &draw_scene)) {
@@ -68,8 +110,8 @@ int main(void) {
     run_loop();
 
     free_shader(main_shader);
-    free_material(main_material);
-    free_mesh(main_mesh);
+    free_material(quad_material);
+    free_mesh(quad_mesh);
 
     engine_release();
     exit(EXIT_SUCCESS);
@@ -77,12 +119,20 @@ int main(void) {
 
 void setup() {
 
-    triangle = make_transform();
+    quad = make_transform();
+    //quad->position.z = 100;
+    //quad->position.z = -10;
+
+    cube = make_transform();
+    cube->position.z = -10;
 
     vector2_t frame_buffer = main_window->frame_buffer_size;
     float ratio = frame_buffer.x / frame_buffer.y;
-    game_camera = make_ortho_camera(-ratio, ratio, -1.f, 1.f, 0.0001f, -100);
-    //game_camera = make_perspective_camera(90, ratio, 0.0001f, -100);
+    //game_camera = make_ortho_camera(-ratio, ratio, -1.f, 1.f, .03f, 10);
+    game_camera = make_perspective_camera(60, ratio, .01f, 10);
+    //game_camera->transform->position.z = 101;
+
+    // FAR AND NEAR PLANES SHOULD ALL BE POSITIVE!!!
 
     main_shader = make_shader(vertex_shader_text, fragment_shader_text);
     ASSERT(main_shader);
@@ -103,23 +153,38 @@ void setup() {
 
     vertex_attribute_defition_t attributes[] = {pos_attribute, col_attribute};
     uniform_definition_t uniforms[] = {mvp_attribute};
-    main_material = make_material(main_shader, uniforms, 1, attributes, 2);
-    ASSERT(main_material);
+    quad_material = make_material(main_shader, uniforms, 1, attributes, 2);
+    ASSERT(quad_material);
 
-    int* indices_array = indices;
-    size_t indices_count = 5;
+    cube_material = make_material(main_shader, uniforms, 1, attributes, 2);
+    ASSERT(cube_material);
 
-    main_mesh = make_mesh(
-            vertices,
+    size_t quad_indices_count = 5;
+    size_t cube_indices_count = 30;
+
+    quad_mesh = make_mesh(
+            plane,
             4,
-            indices_array,
-            indices_count);
+            quad_indices,
+            quad_indices_count);
 
-    ASSERT(main_mesh);
+    ASSERT(quad_mesh);
 
-    set_mesh_material(main_mesh, main_material);
+    cube_mesh = make_mesh(
+            box,
+            32,
+            cube_indices,
+            cube_indices_count);
 
-    render_bind_material(main_material);
+    ASSERT(cube_mesh);
+
+    set_mesh_material(quad_mesh, quad_material);
+    set_mesh_material(cube_mesh, cube_material);
+}
+
+void update_transforms() {
+    transform_update_direction_vectors(game_camera->transform);
+    transform_update_direction_vectors(quad);
 }
 
 void update() {
@@ -128,74 +193,114 @@ void update() {
 
 void draw_scene() {
     render_start_draw(game_camera);
-    render_bind_material(main_material);
-    transform_update_matrix(triangle);
-    render_draw(triangle, main_mesh);
+
+    render_bind_material(quad_material);
+    transform_update_matrix(quad);
+    render_draw(quad, quad_mesh);
+
+//    render_bind_material(cube_material);
+//    transform_update_matrix(cube);
+//    render_draw(cube, cube_mesh);
+
     render_end_draw();
 }
 
-float value;
+void move_camera();
+
+void validate_look_at();
 
 void handle_input() {
-    if (is_key_down(KEY_RIGHT)) {
-        triangle->position = vector3_add(triangle->position, vector3_right());
+    move_camera();
+    //validate_look_at();
+}
 
-        VECTOR3_PRINT(triangle->position);
-    }
+void move_camera() {
+    transform_t* transform = game_camera->transform;
 
-    if (is_key_down(KEY_LEFT)) {
-        triangle->position = vector3_add(triangle->position, vector3_left());
+    float rotation_velocity = 10 * get_delta_time();
+    float velocity = 10 * get_delta_time();
 
-        VECTOR3_PRINT(triangle->position);
-    }
-
-    if (is_key_down(KEY_UP)) {
-        triangle->position = vector3_add(triangle->position, vector3_up());
-
-        VECTOR3_PRINT(triangle->position);
-    }
-
-    if (is_key_down(KEY_DOWN)) {
-        triangle->position = vector3_add(triangle->position, vector3_down());
-
-        VECTOR3_PRINT(triangle->position);
-    }
+    update_transforms();
 
     if (is_key_pressed(KEY_W)) {
-        triangle->rotation = quaternion_rotate(triangle->rotation, 10, vector3_right());
+        transform->position = vector3_add(transform->position, vector3_scale(transform->forward, velocity));
     }
+
+    update_transforms();
 
     if (is_key_pressed(KEY_S)) {
-        triangle->rotation = quaternion_rotate(triangle->rotation, 10, vector3_left());
+        transform->position = vector3_add(transform->position, vector3_scale(transform->forward, -velocity));
     }
 
-    if (is_key_pressed(KEY_A)) {
-        triangle->rotation = quaternion_rotate(triangle->rotation, 10, vector3_down());
-    }
+    update_transforms();
 
     if (is_key_pressed(KEY_D)) {
-        triangle->rotation = quaternion_rotate(triangle->rotation, 10, vector3_up());
+        transform->position = vector3_add(transform->position, vector3_scale(transform->right, -velocity));
     }
 
-    if (is_key_pressed(KEY_KP_ADD)) {
-        value += .001f;
+    update_transforms();
+
+    if (is_key_pressed(KEY_A)) {
+        transform->position = vector3_add(transform->position, vector3_scale(transform->right, velocity));
     }
 
-    if (is_key_pressed(KEY_KP_SUBTRACT)) {
-        value -= .001f;
+    update_transforms();
+
+    if (is_key_pressed(KEY_UP)) {
+        transform->rotation = quaternion_rotate(transform->rotation, rotation_velocity, vector3_right());
     }
 
-    if (is_key_down(KEY_TAB)) {
-        vector2_t frame_buffer = main_window->frame_buffer_size;
-        float ratio = frame_buffer.x / frame_buffer.y;
-        if (game_camera->type == CAMERA_ORTHO) {
-            game_camera = make_perspective_camera(45, ratio, 0.01f, -1000);
-        } else {
-            game_camera = make_ortho_camera(-ratio, ratio, -1.f, 1.f, 0.01f, -1000);
-        }
+    update_transforms();
+
+    if (is_key_pressed(KEY_DOWN)) {
+        transform->rotation = quaternion_rotate(transform->rotation, -rotation_velocity, vector3_right());
     }
 
-    vector3_t mouse_pos = make_vector3_vec2(get_mouse_view_port_position(), value);
-    vector3_t world_pos = camera_screen_to_world_coord(game_camera, mouse_pos);
-    triangle->position = world_pos;
+    update_transforms();
+
+    if (is_key_pressed(KEY_RIGHT)) {
+        transform->rotation = quaternion_rotate(transform->rotation, -rotation_velocity, vector3_up());
+    }
+
+    update_transforms();
+
+    if (is_key_pressed(KEY_LEFT)) {
+        transform->rotation = quaternion_rotate(transform->rotation, rotation_velocity, vector3_up());
+    }
+
+    update_transforms();
+
+    game_camera->transform->position = transform->position;
+    game_camera->transform->rotation = transform->rotation;
+
+    //VECTOR3_PRINT(position);
+}
+
+void validate_look_at() {
+    matrix4x4_t* look_at = make_matrix4x4();
+    mat4x4 look_at_mat;
+
+    set_matrix4x4_identity(look_at);
+    matrix4x4_look_at(look_at, make_vector3(10, -50, 300), vector3_right(), vector3_up());
+
+    mat4x4_identity(look_at_mat);
+    vec3 eye;
+    eye[0] = 10;
+    eye[1] = -50;
+    eye[2] = 300;
+
+    vec3 center;
+    center[0] = 1;
+    center[1] = 0;
+    center[2] = 0;
+
+    vec3 up;
+    up[0] = 0;
+    up[1] = 1;
+    up[2] = 0;
+    mat4x4_look_at(look_at_mat, eye, center, up);
+
+    matrix4x4_t* converted = make_matrix4x4();
+    set_matrix4x4_from_gl(converted, look_at_mat);
+    ASSERT(matrix4x4_compare(look_at, converted));
 }

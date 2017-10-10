@@ -52,6 +52,11 @@ void camera_update_matrix(camera_t* camera) {
 // ################# PERSPECTIVE #######################
 
 camera_t* make_perspective_camera(float fov, float aspect, float near, float far) {
+    ASSERT(near >= .01f);
+    ASSERT(far >= near);
+    ASSERT(fov >= 0);
+    ASSERT(fov <= 179);
+
     camera_t* base = make_base_camera(CAMERA_PERSPECTIVE);
     perspective_camera_t* camera = malloc(sizeof(perspective_camera_t));
 
@@ -74,6 +79,9 @@ void free_perspective_camera(perspective_camera_t* camera) {
 // ##################### ORTHO ##########################
 
 camera_t* make_ortho_camera(float left, float right, float bottom, float top, float near, float far) {
+    ASSERT(near >= .01f);
+    ASSERT(far >= near);
+
     camera_t* base = make_base_camera(CAMERA_ORTHO);
     ortho_camera_t* camera = malloc(sizeof(ortho_camera_t));
 
@@ -108,7 +116,7 @@ void camera_set_perspective_matrix(
     matrix4x4_perspective(projection, perspective->fov, perspective->aspect, perspective->near, perspective->far);
 
     set_matrix4x4_identity(view);
-    matrix4x4_look_at(view, camera_trans->position, camera_trans->forward, camera_trans->up);
+    matrix4x4_look_at(view, camera_trans->position, vector3_scale(camera_trans->forward, INT_MAX), camera_trans->up);
 }
 
 void camera_set_ortho_matrix(
@@ -128,11 +136,10 @@ void camera_set_ortho_matrix(
     );
 
     set_matrix4x4_identity(view);
-    matrix4x4_look_at(view, camera_trans->position, camera_trans->forward, camera_trans->up);
+    matrix4x4_look_at(view, camera_trans->position, vector3_scale(camera_trans->forward, INT_MAX), camera_trans->up);
 }
 
 void camera_get_vp_matrix(matrix4x4_t* result, camera_t* camera) {
-    set_matrix4x4_identity(result);
     matrix4x4_mul(result, camera->projection, camera->view);
 }
 
