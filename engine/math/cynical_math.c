@@ -1277,7 +1277,7 @@ vector3_t quaternion_to_euler(quaternion_t quat) {
     return make_vector3(x, y, z);
 }
 
-quaternion_t quaternion_normalize(quaternion_t quat) {
+quaternion_t quaternion_norm(quaternion_t quat) {
     vector4_t vec = make_vector4(quat.x, quat.y, quat.z, quat.w);
     vec = vector4_norm(vec);
     return make_quaternion(vec.x, vec.y, vec.z, vec.w);
@@ -1314,6 +1314,179 @@ vector3_t quaternion_get_right_vector(quaternion_t quat) {
     float y = 2 * (quat.x * quat.y - quat.w * quat.z);
     float z = 2 * (quat.x * quat.z - quat.w * quat.y);
     return make_vector3(x, y, z);
+}
+
+
+// https://gist.github.com/aeroson/043001ca12fe29ee911e
+float quaternion_sqrd_len(quaternion_t quaternion) {
+    return quaternion.x * quaternion.x +
+           quaternion.y * quaternion.y +
+           quaternion.z * quaternion.z +
+           quaternion.w * quaternion.w;
+}
+
+float quaternion_len(quaternion_t quaternion) {
+    return sqrtf(quaternion_sqrd_len(quaternion));
+}
+
+quaternion_t quaternion_inverse(quaternion_t quaternion) {
+    float length_sqrd = quaternion_sqrd_len(quaternion);
+    if (length_sqrd != 0.0) {
+        float i = 1.0f / length_sqrd;
+        return make_quaternion(quaternion.x * -i,
+                               quaternion.y * -i,
+                               quaternion.z * -i,
+                               quaternion.w * i);
+    }
+    return quaternion;
+}
+
+quaternion_t quaternion_look_rotation(vector3_t forward, vector3_t up) {
+    forward = vector3_norm(forward);
+    vector3_t right = vector3_norm(vector3_cross(up, forward));
+    up = vector3_cross(forward, right);
+    float m00 = right.x;
+    float m01 = right.y;
+    float m02 = right.z;
+    float m10 = up.x;
+    float m11 = up.y;
+    float m12 = up.z;
+    float m20 = forward.x;
+    float m21 = forward.y;
+    float m22 = forward.z;
+
+    float num8 = (m00 + m11) + m22;
+    quaternion_t quaternion = quaternion_identity();
+    if (num8 > 0.f) {
+        float num = sqrtf(num8 + 1.f);
+        quaternion.w = num * 0.5f;
+        num = 0.5f / num;
+        quaternion.x = (m12 - m21) * num;
+        quaternion.y = (m20 - m02) * num;
+        quaternion.z = (m01 - m10) * num;
+        return quaternion;
+    }
+    if ((m00 >= m11) && (m00 >= m22)) {
+        float num7 = sqrtf(((1.f + m00) - m11) - m22);
+        float num4 = 0.5f / num7;
+        quaternion.x = 0.5f * num7;
+        quaternion.y = (m01 + m10) * num4;
+        quaternion.z = (m02 + m20) * num4;
+        quaternion.w = (m12 - m21) * num4;
+        return quaternion;
+    }
+    if (m11 > m22) {
+        float num6 = sqrtf(((1.f + m11) - m00) - m22);
+        float num3 = 0.5f / num6;
+        quaternion.x = (m10 + m01) * num3;
+        quaternion.y = 0.5f * num6;
+        quaternion.z = (m21 + m12) * num3;
+        quaternion.w = (m20 - m02) * num3;
+        return quaternion;
+    }
+    float num5 = sqrtf(((1.f + m22) - m00) - m11);
+    float num2 = 0.5f / num5;
+    quaternion.x = (m20 + m02) * num2;
+    quaternion.y = (m21 + m12) * num2;
+    quaternion.z = 0.5f * num5;
+    quaternion.w = (m01 - m10) * num2;
+    return quaternion;
+}
+
+float quaternion_dot(quaternion_t a, quaternion_t b) {
+    return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
+}
+
+float quaternion_angle(quaternion_t a, quaternion_t b) {
+    float f = quaternion_dot(a, b);
+    return to_degree(acosf(min(absf(f), 1.f)) * 2.f);
+}
+
+quaternion_t slerp(quaternion_t quat_a, quaternion_t quat_b, float delta) {
+    if (delta < 0)
+        delta = 0;
+    else if (delta > 1)
+        delta = 1;
+
+    return slerp_unclamped(quat_a, quat_b, delta);
+}
+
+quaternion_t slerp_unclamped(quaternion_t quat_a, quaternion_t quat_b, float delta) {
+    float a_len_sqrd = quaternion_sqrd_len(quat_a);
+    float b_len_sqrd = quaternion_sqrd_len(quat_b);
+
+    if (a_len_sqrd == 0.0f) {
+        if (b_len_sqrd == 0.0f) {
+            return quaternion_identity();
+        }
+        return quat_b;
+    } else if (b_len_sqrd == 0.0f) {
+        return quat_a;
+    }
+
+    vector3_t quat_a_xyz = make_vector3(quat_a.x, quat_a.y, quat_a.z);
+    vector3_t quat_b_xyz = make_vector3(quat_b.x, quat_b.y, quat_b.z);
+
+    float cos_half_angle = quat_a.w * quat_b.w + vector3_dot(quat_a_xyz, quat_b_xyz);
+
+    if (cos_half_angle >= 1.0f || cos_half_angle <= -1.0f) {
+        // angle = 0.0f, so just return one input.
+        return quat_a;
+    } else if (cos_half_angle < 0.0f) {
+        quat_b_xyz = vector3_negate(quat_b_xyz);;
+
+        quat_b.x = quat_b_xyz.x;
+        quat_b.y = quat_b_xyz.y;
+        quat_b.z = quat_b_xyz.z;
+
+        quat_b.w = -quat_b.w;
+        cos_half_angle = -cos_half_angle;
+    }
+
+    float blend_a;
+    float blend_b;
+    if (cos_half_angle < 0.99f) {
+        // do proper slerp for big angles
+        float halfAngle = acosf(cos_half_angle);
+        float sinHalfAngle = sinf(halfAngle);
+        float oneOverSinHalfAngle = 1.0f / sinHalfAngle;
+        blend_a = sinf(halfAngle * (1.0f - delta)) * oneOverSinHalfAngle;
+        blend_b = sinf(halfAngle * delta) * oneOverSinHalfAngle;
+    } else {
+        // do lerp if angle is really small.
+        blend_a = 1.0f - delta;
+        blend_b = delta;
+    }
+
+    quat_a_xyz = make_vector3(quat_a.x, quat_a.y, quat_a.z);
+    quat_b_xyz = make_vector3(quat_b.x, quat_b.y, quat_b.z);
+
+    vector3_t result_xyz = vector3_add(vector3_scale(quat_a_xyz, blend_a), vector3_scale(quat_b_xyz, blend_b));
+    quaternion_t result = make_quaternion(result_xyz.x,
+                                          result_xyz.y,
+                                          result_xyz.z,
+                                          blend_a * quat_a.w + blend_b * quat_b.w);
+
+    float result_len_sqrd = quaternion_sqrd_len(result);
+    if (result_len_sqrd > 0.0f)
+        return quaternion_norm(result);
+    else
+        return quaternion_identity();
+}
+
+quaternion_t quaternion_rotate_towards(quaternion_t from, quaternion_t to, float max_degrees) {
+    float num = quaternion_angle(from, to);
+    if (num == 0.f) {
+        return to;
+    }
+    float t = min(1.f, max_degrees / num);
+    return slerp_unclamped(from, to, t);
+}
+
+quaternion_t quaternion_from_to_rotation(vector3_t from, vector3_t to) {
+    quaternion_t quat_from = quaternion_look_rotation(from, vector3_up());
+    quaternion_t quat_to = quaternion_look_rotation(to, vector3_up());
+    return quaternion_rotate_towards(quat_from, quat_to, INT_MAX);
 }
 
 // ########################## TRANSFORM ###############################
@@ -1356,14 +1529,21 @@ void transform_update_matrix(transform_t* transform) {
 
 void transform_rotate_around(transform_t* transform, vector3_t point, vector3_t axis, float angle) {
     vector3_t position = transform->position;
-    quaternion_t rotation = transform->rotation;
+    quaternion_t rotation_quat = quaternion_from_rotation_axis(axis, angle); // desired rotation
 
-    position = vector3_sub(position, point);
-    quaternion_t new_rotation = quaternion_rotate(rotation, angle, axis);
-    vector3_t new_position = quaternion_mul_vec3(rotation, position);
+    vector3_t direction = vector3_sub(position, point);
+    vector3_t rotated_direction = quaternion_mul_vec3(rotation_quat, direction);
 
-    transform->rotation = new_rotation;
+    vector3_t new_position = vector3_add(point, rotated_direction);
     transform->position = new_position;
+
+    quaternion_t current_rotation = transform->rotation;
+    quaternion_t inversed_rotation = quaternion_inverse(current_rotation);
+
+    quaternion_t result_quat;
+    result_quat = quaternion_mul(rotation_quat, current_rotation);
+    result_quat = quaternion_mul(inversed_rotation, result_quat);
+    transform->rotation = quaternion_mul(result_quat, transform->rotation);
 }
 
 void transform_rotate(transform_t* transform, vector3_t ordered_rotation) {
@@ -1374,12 +1554,8 @@ void transform_rotate(transform_t* transform, vector3_t ordered_rotation) {
     transform->rotation = rotation;
 }
 
-// https://gamedev.stackexchange.com/questions/15070/orienting-a-model-to-face-a-target
-void transform_look_at(transform_t* transform, vector3_t point) {
-    vector3_t direction = vector3_sub(transform->position, point);
-    direction = vector3_norm(direction);
-
-    float diff = vector3_dot(vector3_forward(), direction);
+void transform_set_direction(transform_t* transform, vector3_t local_direction, vector3_t global_direction) {
+    float diff = vector3_dot(global_direction, local_direction);
 
     if (pratically_equal(diff, -1)) {
         const vector3_t up = vector3_up();
@@ -1388,10 +1564,29 @@ void transform_look_at(transform_t* transform, vector3_t point) {
         transform->rotation = quaternion_identity();
     } else {
         float rotation_angle = acosf(diff);
-        vector3_t rotation_axis = vector3_cross(vector3_forward(), direction);
+        vector3_t rotation_axis = vector3_cross(global_direction, local_direction);
         rotation_axis = vector3_norm(rotation_axis);
         transform->rotation = quaternion_from_rotation_axis(rotation_axis, to_degree(rotation_angle));
     }
+}
+
+void transform_set_up(transform_t* transform, vector3_t up_direction) {
+    transform_set_direction(transform, up_direction, vector3_up());
+}
+
+void transform_set_right(transform_t* transform, vector3_t right_direction) {
+    transform_set_direction(transform, right_direction, vector3_right());
+}
+
+void transform_set_forward(transform_t* transform, vector3_t forward_direction) {
+    transform_set_direction(transform, forward_direction, vector3_forward());
+}
+
+// https://gamedev.stackexchange.com/questions/15070/orienting-a-model-to-face-a-target
+void transform_look_at(transform_t* transform, vector3_t point) {
+    vector3_t direction = vector3_sub(transform->position, point);
+    direction = vector3_norm(direction);
+    transform_set_forward(transform, direction);
 }
 
 void transform_update_direction_vectors(transform_t* transform) {

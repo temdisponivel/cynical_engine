@@ -246,6 +246,7 @@ vector4_t make_vector4(float x, float y, float z, float w);
 vector4_t make_vector4_vec3(vector3_t vec, float w);
 
 vector4_t vector4_negate(vector4_t vector);
+
 vector4_t vector4_zero();
 
 vector4_t vector4_one();
@@ -372,7 +373,7 @@ quaternion_t quaternion_from_euler(vector3_t euler);
 
 vector3_t quaternion_to_euler(quaternion_t quat);
 
-quaternion_t quaternion_normalize(quaternion_t quat);
+quaternion_t quaternion_norm(quaternion_t quat);
 
 bool_t quaternion_compare(quaternion_t a, quaternion_t b);
 
@@ -384,6 +385,26 @@ vector3_t quaternion_get_up_vector(quaternion_t quat);
 
 vector3_t quaternion_get_right_vector(quaternion_t quat);
 
+float quaternion_sqrd_len(quaternion_t quaternion);
+
+float quaternion_len(quaternion_t quaternion);
+
+quaternion_t quaternion_inverse(quaternion_t quaternion);
+
+quaternion_t quaternion_look_rotation(vector3_t forward, vector3_t up);
+
+float quaternion_dot(quaternion_t a, quaternion_t b);
+
+float quaternion_angle(quaternion_t a, quaternion_t b);
+
+quaternion_t slerp(quaternion_t quat_a, quaternion_t quat_b, float delta);
+
+quaternion_t slerp_unclamped(quaternion_t quat_a, quaternion_t quat_b, float delta);
+
+quaternion_t quaternion_rotate_towards(quaternion_t from, quaternion_t to, float max_degrees);
+
+quaternion_t quaternion_from_to_rotation(vector3_t from, vector3_t to);
+
 // ########################## TRANSFORM ###############################
 
 transform_t* make_transform();
@@ -393,6 +414,12 @@ void free_transform(transform_t* transform);
 void transform_rotate_around(transform_t* transform, vector3_t point, vector3_t axis, float angle);
 
 void transform_rotate(transform_t* transform, vector3_t ordered_rotation);
+
+void transform_set_up(transform_t* transform, vector3_t up_direction);
+
+void transform_set_right(transform_t* transform, vector3_t right_direction);
+
+void transform_set_forward(transform_t* transform, vector3_t forward_direction);
 
 void transform_look_at(transform_t* transform, vector3_t point);
 

@@ -270,8 +270,11 @@ void move_camera() {
 
     update_transforms();
 
-    if (is_key_up(KEY_SPACE)) {
-        transform_look_at(transform, quad->position);
+    if (is_key_pressed(KEY_SPACE)) {
+//          transform_look_at(transform, quad->position);
+//        transform_rotate_around(transform, quad->position, vector3_up(), rotation_velocity * 5);
+
+        transform_set_up(transform, vector3_forward());
     }
 
     update_transforms();
