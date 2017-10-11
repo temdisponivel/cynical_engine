@@ -7,6 +7,7 @@
 
 #define VERTEX_POS_ATTRIBUTE_INDEX 0
 #define VERTEX_COLOR_ATTRIBUTE_INDEX 1
+#define UV0_ATTRIBUTE_INDEX 2
 
 // #### IN-FILE IMPLEMENTATION ####
 size_t get_vertex_byte_size();
@@ -70,6 +71,9 @@ void buff_mesh_data(mesh_t* mesh) {
         full_vertex_data[j++] = vertex.color.y;
         full_vertex_data[j++] = vertex.color.z;
         full_vertex_data[j++] = vertex.color.w;
+
+        full_vertex_data[j++] = vertex.uv0.x;
+        full_vertex_data[j++] = vertex.uv0.y;
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo_handle);
@@ -78,7 +82,7 @@ void buff_mesh_data(mesh_t* mesh) {
     glBufferData(GL_ARRAY_BUFFER, full_vertex_data_byte_size, full_vertex_data, GL_STATIC_DRAW);
     CHECK_GL_ERROR();
 
-    size_t stride = sizeof(float) * (3 + 4);
+    size_t stride = get_vertex_byte_size();
 
     GLuint vertex_pos_index = get_vertex_attrib_index(mesh->material, VERTEX_ATTRIB_POS);
 
@@ -103,12 +107,28 @@ void buff_mesh_data(mesh_t* mesh) {
             4, // there's 4 floats representing color
             GL_FLOAT,
             GL_FALSE,
-            stride, // there's 3 floats of position between this color and the next
+            stride,
             (void*) offset // there's 3 floats of position before the first color
     );
     CHECK_GL_ERROR();
 
     glEnableVertexAttribArray(vertex_color_index);
+    CHECK_GL_ERROR();
+
+    GLuint uv0_index = get_vertex_attrib_index(mesh->material, VERTEX_ATTRIB_UV0);
+
+    size_t uv0_offset = sizeof(float) * (3 + 4);
+    glVertexAttribPointer(
+            uv0_index,
+            2, // there's 2 floats representing uv
+            GL_FLOAT,
+            GL_FALSE,
+            stride,
+            (void*) uv0_offset // there's 3 floats of position and 4 floats of color before the first uv0
+    );
+    CHECK_GL_ERROR();
+
+    glEnableVertexAttribArray(uv0_index);
     CHECK_GL_ERROR();
 
     frame_memory_free(full_vertex_data);
@@ -179,17 +199,6 @@ vertex_attribute_t* make_vertex_attribute(shader_t* shader, vertex_attribute_def
     attribute->handle = glGetAttribLocation(shader->program_handle, definition.name);
     CHECK_GL_ERROR()
     ASSERT(attribute->handle >= 0);
-
-//    switch (attribute->type) {
-//        case VERTEX_ATTRIB_POS:
-//            glBindAttribLocation(shader->program_handle, VERTEX_POS_ATTRIBUTE_INDEX, definition.name);
-//            CHECK_GL_ERROR();
-//            break;
-//        case VERTEX_ATTRIB_COLOR:
-//            glBindAttribLocation(shader->program_handle, VERTEX_COLOR_ATTRIBUTE_INDEX, definition.name);
-//            CHECK_GL_ERROR();
-//            break;
-//    }
 
     return attribute;
 }
@@ -290,6 +299,12 @@ void rebuff_uniform(uniform_t* uniform) {
             glUniformMatrix4fv(uniform->handle, 1, GL_FALSE, (const GLfloat*) matrix_data);
             CHECK_GL_ERROR();
             break;
+        case UNIFORM_TEXTURE:
+            // todo: this zero represents the texture unit
+            // the texture unit defined by glActiveTexture right before binding the texture
+            // we need to make the bind as well as this to be dynamic (not always 0)
+            glUniform1i(uniform->handle, 0);
+            break;
     }
 }
 
@@ -334,6 +349,9 @@ GLuint get_vertex_attrib_index(material_t* material, VERTEX_ATTRIB_TYPE_T type) 
             case VERTEX_ATTRIB_COLOR:
                 vertex_index = VERTEX_COLOR_ATTRIBUTE_INDEX;
                 break;
+            case VERTEX_ATTRIB_UV0:
+                vertex_index = UV0_ATTRIBUTE_INDEX;
+                break;
         }
     }
 
@@ -341,7 +359,45 @@ GLuint get_vertex_attrib_index(material_t* material, VERTEX_ATTRIB_TYPE_T type) 
 }
 
 size_t get_vertex_byte_size() {
-    // 3 floats for position
-    // 4 floats for color
-    return sizeof(float) * (3 + 4);
+    // 3 floats per position
+    // 4 floats per color
+    // 2 floats per uv0
+    return sizeof(float) * (3 + 4 + 2);
+}
+
+texture_t load_texture(texture_defition_t defition) {
+    int height, width, channels;
+    unsigned char* data = stbi_load(defition.file_name, &width, &height, &channels, STBI_rgb_alpha);
+
+    GLuint texture_handle;
+    glGenTextures(1, &texture_handle);
+    CHECK_GL_ERROR();
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture_handle);
+
+        GLenum format = GL_RGBA;
+    if (channels == 2) {
+        format = GL_RGB;
+    }
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    CHECK_GL_ERROR();
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    stbi_image_free(data);
+
+    texture_t result;
+    result.handle = texture_handle;
+    result.size = make_vector2(width, height);
+    return result;
+}
+
+void free_texture(texture_t texture) {
+    GLuint textures[] = {texture.handle};
+    glDeleteTextures(1, textures);
 }

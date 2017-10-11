@@ -8,6 +8,8 @@ if (${CMAKE_BUILD_TYPE} STREQUAL Debug)
     add_definitions(-DCYNICAL_DEBUG)
 endif ()
 
+set(RAW_DIR "raw")
+
 # DEPENDENCIES
 set(DEP_ROOT_DIR ${CMAKE_SOURCE_DIR}/dependencies)
 set(DEP_DIR ${DEP_ROOT_DIR}/x86)
@@ -44,3 +46,4 @@ target_link_libraries(cynical_engine "${GL_LIBRARIES} ${GLFW_LIBRARIES} ${GLEW_L
 ################### POST-BUILD ################################
 file(COPY ${GLFW_BIN_DIR} DESTINATION .)
 file(COPY ${GLEW_BIN_DIR} DESTINATION .)
+file(COPY ${RAW_DIR} DESTINATION .)

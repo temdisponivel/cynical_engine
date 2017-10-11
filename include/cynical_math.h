@@ -73,8 +73,6 @@ typedef struct transform_s {
 
     matrix4x4_t* local_to_world;
     matrix4x4_t* world_to_local;
-
-    struct transform* parent;
 } transform_t;
 
 // ################ GENERAL #################################
@@ -84,25 +82,25 @@ typedef struct transform_s {
 #define SECONDS_TO_NANO 100000000
 #define FLOAT_PRATICALLY_EQUAL_DIFF 0.00000001f
 
-inline float normalize(float value, float min, float max);
+float normalize(float value, float min, float max);
 
-inline float clamp(float value, float min, float max);
+float clamp(float value, float min, float max);
 
-inline float lerp(float a, float b, float delta);
+float lerp(float a, float b, float delta);
 
-inline float move_towards(float a, float b, float maxDistance);
+float move_towards(float a, float b, float maxDistance);
 
-inline float to_degree(float rad);
+float to_degree(float rad);
 
-static inline float to_rad(float degree);
+float to_rad(float degree);
 
-inline float min(float a, float b);
+float min(float a, float b);
 
-inline float max(float a, float b);
+float max(float a, float b);
 
-inline float absf(float a);
+float absf(float a);
 
-inline float pratically_equal(float a, float b);
+float pratically_equal(float a, float b);
 
 
 // ################ VECTOR 2 ##########################

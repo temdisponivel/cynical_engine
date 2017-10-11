@@ -8,6 +8,17 @@
 #include <cynical_collections.h>
 #include <cynical_includes.h>
 
+typedef struct texture_definition_s {
+    char* file_name;
+    GLenum min_filer;
+    GLenum max_filer;
+} texture_defition_t;
+
+typedef struct texture_s {
+    GLuint handle;
+    vector2_t size;
+} texture_t;
+
 typedef struct shader_s {
     GLuint vertex_handle;
     GLuint fragment_handle;
@@ -17,6 +28,7 @@ typedef struct shader_s {
 typedef enum {
     VERTEX_ATTRIB_POS,
     VERTEX_ATTRIB_COLOR,
+    VERTEX_ATTRIB_UV0,
 } VERTEX_ATTRIB_TYPE_T;
 
 typedef struct vertex_attribute_s {
@@ -36,6 +48,7 @@ typedef enum {
     UNIFORM_VECTOR3,
     UNIFORM_VECTOR4,
     UNIFORM_MATRIX4X4,
+    UNIFORM_TEXTURE,
 } UNIFORM_DATA_TYPE;
 
 typedef union uniform_data_u {
@@ -44,6 +57,7 @@ typedef union uniform_data_u {
     vector3_t vector3_value;
     vector4_t vector4_value;
     matrix4x4_t matrix4x4_value;
+    texture_t texture_value;
 } uniform_data_t;
 
 typedef enum {
@@ -77,6 +91,7 @@ typedef struct material_s {
 typedef struct vertex_s {
     vector3_t position;
     vector4_t color;
+    vector2_t uv0;
 } vertex_t;
 
 typedef struct mesh_s {
@@ -127,5 +142,11 @@ uniform_t* get_uniform_by_tag(material_t* material, UNIFORM_TAG_T tag);
 void rebuff_uniform(uniform_t* uniform);
 
 vertex_attribute_t* find_vertex_attrib_by_type(material_t* material, VERTEX_ATTRIB_TYPE_T type);
+
+// ################## TEXTURE ##########################
+
+texture_t load_texture(texture_defition_t);
+
+void free_texture(texture_t texture);
 
 #endif //CYNICAL_ENGINE_CYNICAL_GRAPHICS_H

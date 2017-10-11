@@ -7,5 +7,6 @@
 
 #include "glew/glew.h"
 #include "glfw/glfw3.h"
+#include "stb/stb_image.h"
 
 #endif //CYNICAL_ENGINE_CYNICAL_INCLUDES_H
