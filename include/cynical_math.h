@@ -359,12 +359,6 @@ bool_t quaternion_compare(quaternion_t a, quaternion_t b);
 
 void quaternion_string(char* result, quaternion_t quat);
 
-vector3_t quaternion_get_forward_vector(quaternion_t quat);
-
-vector3_t quaternion_get_up_vector(quaternion_t quat);
-
-vector3_t quaternion_get_right_vector(quaternion_t quat);
-
 float quaternion_sqrd_len(quaternion_t quaternion);
 
 float quaternion_len(quaternion_t quaternion);
@@ -411,11 +405,10 @@ vector3_t transform_vector3_point(transform_t* transform, vector3_t vector);
 
 vector3_t transform_vector3_point_to_local(transform_t* transform, vector3_t vector);
 
-/*
 vector3_t transform_vector3_direction(transform_t* transform, vector3_t vector);
 
 vector3_t transform_vector3_direction_to_local(transform_t* transform, vector3_t vector);
- */
+
 
 #ifdef CYNICAL_DEBUG
 
