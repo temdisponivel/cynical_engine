@@ -72,6 +72,9 @@ typedef struct transform_s {
     vector3_t right;
 
     matrix4x4_t* local_to_world;
+    matrix4x4_t* world_to_local;
+
+    struct transform* parent;
 } transform_t;
 
 // ################ GENERAL #################################
@@ -81,48 +84,25 @@ typedef struct transform_s {
 #define SECONDS_TO_NANO 100000000
 #define FLOAT_PRATICALLY_EQUAL_DIFF 0.00000001f
 
-static inline float normalize(float value, float min, float max) {
-    return (value - min) / (max - min);
-}
+inline float normalize(float value, float min, float max);
 
-static inline float clamp(float value, float min, float max) {
-    return (value < min ? min : (value > max ? max : value));
-}
+inline float clamp(float value, float min, float max);
 
-static inline float lerp(float a, float b, float delta) {
-    return ((1 - delta) * a) + (delta * b);
-}
+inline float lerp(float a, float b, float delta);
 
-static inline float move_towards(float a, float b, float maxDistance) {
-    return clamp(a + maxDistance, -b, b);
-}
+inline float move_towards(float a, float b, float maxDistance);
 
-static inline float to_degree(float rad) {
-    return rad * RAD_TO_DEGREE;
-}
+inline float to_degree(float rad);
 
-static inline float to_rad(float degree) {
-    return degree * DEGREE_TO_RAD;
-}
+static inline float to_rad(float degree);
 
-static inline float min(float a, float b) {
-    return a < b ? a : b;
-}
+inline float min(float a, float b);
 
-static inline float max(float a, float b) {
-    return a > b ? a : b;
-}
+inline float max(float a, float b);
 
-static inline float absf(float a) {
-    if (a < 0)
-        return -a;
-    else
-        return a;
-}
+inline float absf(float a);
 
-static inline float pratically_equal(float a, float b) {
-    return absf(a - b) < FLOAT_PRATICALLY_EQUAL_DIFF;
-}
+inline float pratically_equal(float a, float b);
 
 
 // ################ VECTOR 2 ##########################
@@ -426,6 +406,16 @@ void transform_look_at(transform_t* transform, vector3_t point);
 void transform_update_matrix(transform_t* transform);
 
 void transform_update_direction_vectors(transform_t* transform);
+
+vector3_t transform_vector3_point(transform_t* transform, vector3_t vector);
+
+vector3_t transform_vector3_point_to_local(transform_t* transform, vector3_t vector);
+
+/*
+vector3_t transform_vector3_direction(transform_t* transform, vector3_t vector);
+
+vector3_t transform_vector3_direction_to_local(transform_t* transform, vector3_t vector);
+ */
 
 #ifdef CYNICAL_DEBUG
 

@@ -7,6 +7,51 @@
 #include <stdio.h>
 #include <cynical_debug.h>
 
+// ##### GENERAL #####
+
+float normalize(float value, float min, float max) {
+    return (value - min) / (max - min);
+}
+
+float clamp(float value, float min, float max) {
+    return (value < min ? min : (value > max ? max : value));
+}
+
+float lerp(float a, float b, float delta) {
+    return ((1 - delta) * a) + (delta * b);
+}
+
+float move_towards(float a, float b, float maxDistance) {
+    return clamp(a + maxDistance, -b, b);
+}
+
+float to_degree(float rad) {
+    return rad * RAD_TO_DEGREE;
+}
+
+inline float to_rad(float degree) {
+    return degree * DEGREE_TO_RAD;
+}
+
+float min(float a, float b) {
+    return a < b ? a : b;
+}
+
+float max(float a, float b) {
+    return a > b ? a : b;
+}
+
+float absf(float a) {
+    if (a < 0)
+        return -a;
+    else
+        return a;
+}
+
+float pratically_equal(float a, float b) {
+    return absf(a - b) < FLOAT_PRATICALLY_EQUAL_DIFF;
+}
+
 
 // ################ VECTOR 2 ##########################
 
@@ -1495,9 +1540,12 @@ transform_t* make_transform() {
     transform_t* result = malloc(sizeof(transform_t));
 
     result->local_to_world = make_matrix4x4();
+    result->world_to_local = make_matrix4x4();
+
     result->position = vector3_zero();
     result->scale = vector3_one();
     result->rotation = quaternion_identity();
+
     result->forward = vector3_forward();
     result->right = vector3_right();
     result->up = vector3_up();
@@ -1525,6 +1573,8 @@ void transform_update_matrix(transform_t* transform) {
     set_matrix4x4_identity(transform->local_to_world);
     matrix4x4_mul(transform->local_to_world, &translation_matrix, &rotation_matrix);
     matrix4x4_mul(transform->local_to_world, transform->local_to_world, &scale_matrix);
+
+    matrix4x4_invert(transform->world_to_local, transform->local_to_world);
 }
 
 void transform_rotate_around(transform_t* transform, vector3_t point, vector3_t axis, float angle) {
@@ -1594,8 +1644,28 @@ void transform_update_direction_vectors(transform_t* transform) {
 
     transform->forward = quaternion_get_forward_vector(rotation);
 
-    VECTOR3_PRINT(transform->forward);
-
     transform->up = quaternion_get_up_vector(rotation);
     transform->right = quaternion_get_right_vector(rotation);
 }
+
+vector3_t transform_vector3_point(transform_t* transform, vector3_t vector) {
+    vector4_t point = make_vector4(vector.x, vector.y, vector.z, 1.f);
+    vector4_t result = matrix4x4_mul_vector4(transform->local_to_world, point);
+    return make_vector3(result.x, result.y, result.z);
+}
+
+vector3_t transform_vector3_point_to_local(transform_t* transform, vector3_t vector) {
+    vector4_t point = make_vector4(vector.x, vector.y, vector.z, 1.f);
+    vector4_t result = matrix4x4_mul_vector4(transform->world_to_local, point);
+    return make_vector3(result.x, result.y, result.z);
+}
+/*
+vector3_t transform_vector3_direction(transform_t* transform, vector3_t vector) {
+    return quaternion_mul_vec3(transform->rotation, vector);
+}
+
+vector3_t transform_vector3_direction_to_local(transform_t* transform, vector3_t vector) {
+    quaternion_t inversed_rotation = quaternion_inverse(transform->rotation);
+    return quaternion_mul_vec3(inversed_rotation, vector);
+}
+ */

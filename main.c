@@ -183,6 +183,7 @@ void setup() {
 }
 
 void update_transforms() {
+    transform_update_matrix(game_camera->transform);
     transform_update_direction_vectors(game_camera->transform);
     transform_update_direction_vectors(quad);
 }
@@ -282,7 +283,11 @@ void move_camera() {
     game_camera->transform->position = transform->position;
     game_camera->transform->rotation = transform->rotation;
 
-    //VECTOR3_PRINT(position);
+    update_transforms();
+
+    vector3_t vector = make_vector3(10, 10, 10);
+    vector = transform_vector3_point_to_local(transform, vector);
+    VECTOR3_PRINT(vector);
 }
 
 void validate_look_at() {
